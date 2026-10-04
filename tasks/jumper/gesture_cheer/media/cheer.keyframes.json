@@ -1,0 +1,130 @@
+{
+  "name": "cheer",
+  "description": "Leans back onto its four legs, raises both claws overhead, snaps them open and shut, sways them side to side, snaps them once more and lowers them.",
+  "dt": 0.02,
+  "keyframes": [
+    {
+      "t": 0.0,
+      "set": {
+        "LM_J0_joint": -0.417,
+        "LM_J1_joint": 0.248,
+        "LM_J2_joint": -1.641,
+        "RM_J0_joint": 0.417,
+        "RM_J1_joint": -0.249,
+        "RM_J2_joint": 1.644,
+        "LR_J0_joint": 0.169,
+        "LR_J1_joint": 0.6,
+        "LR_J2_joint": -1.904,
+        "RR_J0_joint": -0.17,
+        "RR_J1_joint": -0.601,
+        "RR_J2_joint": 1.908
+      }
+    },
+    {
+      "t": 1.0,
+      "set": {
+        "LF_J0_joint": -0.524,
+        "LF_J1_joint": -2.618,
+        "LF_J2_joint": -0.611,
+        "LF_J3_joint": -1.396,
+        "RF_J0_joint": 0.524,
+        "RF_J1_joint": -2.618,
+        "RF_J2_joint": 0.611,
+        "RF_J3_joint": 1.396
+      }
+    },
+    {
+      "t": 1.4,
+      "set": {
+        "LF_J4_joint": -0.8,
+        "RF_J4_joint": 0.8
+      }
+    },
+    {
+      "t": 1.7,
+      "set": {
+        "LF_J4_joint": 0.0,
+        "RF_J4_joint": 0.0
+      }
+    },
+    {
+      "t": 2.0,
+      "set": {
+        "LF_J4_joint": -0.8,
+        "RF_J4_joint": 0.8
+      }
+    },
+    {
+      "t": 2.3,
+      "set": {
+        "LF_J4_joint": 0.0,
+        "RF_J4_joint": 0.0
+      }
+    },
+    {
+      "t": 2.8,
+      "set": {
+        "LF_J0_joint": -0.274,
+        "RF_J0_joint": 0.774
+      }
+    },
+    {
+      "t": 3.3,
+      "set": {
+        "LF_J0_joint": -0.774,
+        "RF_J0_joint": 0.274
+      }
+    },
+    {
+      "t": 3.8,
+      "set": {
+        "LF_J0_joint": -0.274,
+        "RF_J0_joint": 0.774
+      }
+    },
+    {
+      "t": 4.3,
+      "set": {
+        "LF_J0_joint": -0.774,
+        "RF_J0_joint": 0.274
+      }
+    },
+    {
+      "t": 4.7,
+      "set": {
+        "LF_J0_joint": -0.524,
+        "RF_J0_joint": 0.524
+      }
+    },
+    {
+      "t": 5.0,
+      "set": {
+        "LF_J4_joint": -0.8,
+        "RF_J4_joint": 0.8
+      }
+    },
+    {
+      "t": 5.3,
+      "set": {
+        "LF_J4_joint": 0.0,
+        "RF_J4_joint": 0.0
+      }
+    },
+    {
+      "t": 5.6
+    },
+    {
+      "t": 6.6,
+      "set": {
+        "LF_J0_joint": -0.5507,
+        "LF_J1_joint": -1.0658,
+        "LF_J2_joint": -0.4408,
+        "LF_J3_joint": -1.374,
+        "RF_J0_joint": 0.5524,
+        "RF_J1_joint": -1.066,
+        "RF_J2_joint": 0.4414,
+        "RF_J3_joint": 1.4173
+      }
+    }
+  ]
+}

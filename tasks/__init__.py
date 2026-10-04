@@ -61,6 +61,7 @@ from .jumper import dance_waist  # noqa: F401,E402
 from .jumper import five_foot  # noqa: F401,E402
 from .jumper import flat  # noqa: F401,E402
 from .jumper import gesture_bow  # noqa: F401,E402
+from .jumper import gesture_cheer  # noqa: F401,E402
 from .jumper import gesture_hello  # noqa: F401,E402
 from .jumper import gesture_paw  # noqa: F401,E402
 from .jumper import gesture_salute  # noqa: F401,E402

@@ -66,6 +66,9 @@ NOT_LOCOMOTION = {
     "jumper.gesture_hello",
     "jumper.gesture_paw",
     "jumper.gesture_salute",
+    # The same machinery again, with a clip written from keyframes by
+    # tools/synth_gesture.py rather than imported.
+    "jumper.gesture_cheer",
     # Walks on five legs with the left-front arm carried as a claw: 16 driven joints
     # instead of 20, five feet in every per-foot term, symmetry off, and a reward
     # set of its own. Set beside the four it would be measuring a leg count, not a
