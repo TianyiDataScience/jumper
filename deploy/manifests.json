@@ -238,6 +238,39 @@
           "keys": {"key": ["key_4", "keypad_4"], "on": "toggle", "from": ["locomotion"]}
         }
       }
+    },
+    "cheer": {
+      "description": "jumper.tripod walking by default, with two gestures from it: waving hello on up on the d-pad (1) and the keyframed cheer on down on the d-pad (2), and Menu (Ctrl) on its own to leave either early. The gesture bindings are the jumper bundle's, the cheer taking the bow's place on down.",
+      "fsm": "cheer.controller.toml",
+      "leave": [
+        {
+          "name": "leave_motion",
+          "leaves": ["gesture_hello", "gesture_cheer"],
+          "pad": {"button": "menu", "on": "fall", "from": ["gesture_hello", "gesture_cheer"]},
+          "keys": {"key": ["ctrl"], "on": "fall", "from": ["gesture_hello", "gesture_cheer"]}
+        }
+      ],
+      "modes": {
+        "locomotion": {
+          "task": "jumper.tripod",
+          "policy": "tasks/jumper/tripod/out/tianyi-4070",
+          "_reached_by": "No switch: the cascade's `always` rule, as in the jumper bundle."
+        },
+        "gesture_hello": {
+          "task": "jumper.gesture_hello",
+          "policy": "tasks/jumper/gesture_hello/out/tianyi-4070",
+          "_reached_by": "Up on the d-pad; 1 on the keyboard (the main row or the keypad). From locomotion only, as in the jumper bundle.",
+          "pad": {"button": "dpad_up", "on": "toggle", "from": ["locomotion"]},
+          "keys": {"key": ["key_1", "keypad_1"], "on": "toggle", "from": ["locomotion"]}
+        },
+        "gesture_cheer": {
+          "task": "jumper.gesture_cheer",
+          "policy": "tasks/jumper/gesture_cheer/out/tianyi-4070",
+          "_reached_by": "Down on the d-pad; 2 on the keyboard. From locomotion only.",
+          "pad": {"button": "dpad_down", "on": "toggle", "from": ["locomotion"]},
+          "keys": {"key": ["key_2", "keypad_2"], "on": "toggle", "from": ["locomotion"]}
+        }
+      }
     }
   }
 }
