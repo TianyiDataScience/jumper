@@ -7,19 +7,21 @@ the rule is applied to this clip's measurements and the result is quoted -- read
 
 ## This clip, measured
 
-At the 50 Hz control rate (8.7 s, lead-in and lead-out included): per-joint
-position std 0.152 rad at the median and 0.400 at the most active, RMS amplitude
-0.218 rad; joint velocity RMS 1.264 rad/s, per-joint std 1.143 at the median and
-1.967 at the most active, peaking at 5.18 rad/s (the claws snapping in the slow
-shake); the base between 102 and 115 mm; tilt at most 8.0 degrees.
+At the 50 Hz control rate (9.7 s, lead-in and lead-out included): per-joint
+position std 0.141 rad at the median and 0.389 at the most active, RMS amplitude
+0.208 rad; joint velocity RMS 0.760 rad/s, per-joint std 0.608 at the median and
+1.466 at the most active, peaking at 3.40 rad/s (LF_J0, the claws' whip); the base
+between 103 and 115 mm; tilt at most 8.0 degrees.
 
-The amplitude is cheer's, and the velocity is two and a half times it: a shake is
-speed, not reach, and the velocity term below is the one that grows.
+The amplitude is cheer's and the velocity half again flash's. The first clip ran
+at 1.264 rad/s RMS and 5.18 peak and did not train (see `__init__.py`).
 
 Played open loop on this task's actuators (PD to the reference, no policy), the
-clip runs all 436 steps without a termination: joint error median 0.030 rad, p95
-0.191, worst 0.533 on LF_J0 (the claws' whip lags the fast shake); cheer, the
-control, 0.011 / 0.087 / 0.226. The base sags to 92-107 mm under PD.
+clip runs all 484 steps without a termination: joint error median 0.026 rad, p95
+0.147, worst 0.517 on LF_J0 (the whip lags); a support foot at most 17.6 mm off
+its reference height, against the 50 mm termination below. The first clip: 0.032 /
+0.191 / 0.581 and 15.1 mm -- open loop does not tell the two apart, training did.
+The base sags to 92-107 mm under PD.
 
 **The reward weights are starting points**: no policy has been trained on this
 clip yet.
@@ -36,11 +38,11 @@ from ..common.dance.env import dance_env_cfg
 #: This task's material, written by `tools/import_wbc_gestures.py`.
 MEDIA = Path(__file__).resolve().parent / "media"
 
-#: Episode length, seconds. Half the the 8.7 s clip, jumper.dance_maze's rule for a
+#: Episode length, seconds. Half the 9.7 s clip, jumper.dance_maze's rule for a
 #: short clip: the command teleports the robot back onto the reference wherever an
 #: episode runs off the end, and at half the clip an episode sampled in its first
 #: half runs clean.
-EPISODE_S = 4.4
+EPISODE_S = 4.8
 
 
 def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvCfg:
@@ -71,20 +73,20 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         # unchanged (5.0) plus the two joint-space terms below (1.5).
         #
         # Joint position: jumper.dance's rule is a std at 0.44 of the clip's RMS
-        # amplitude. Here: 0.44 x 0.218 -> 0.10.
-        joint_pos_std=0.10,
+        # amplitude. Here: 0.44 x 0.208 -> 0.09.
+        joint_pos_std=0.09,
         joint_pos_weight=1.0,
-        # Joint velocity: two thirds of the clip's velocity RMS. Here: 1.264 -> 0.84.
+        # Joint velocity: two thirds of the clip's velocity RMS. Here: 0.760 -> 0.51.
         # Half the position weight, so when they disagree the pose wins.
-        joint_vel_std=0.84,
+        joint_vel_std=0.51,
         joint_vel_weight=0.5,
         # Smoothness: -0.1 is calibrated at this action scale (0.25) and the
         # second difference at half of it -- properties of the robot and the
         # action space, not of the clip.
         action_rate_weight=-0.1,
         action_acc_weight=-0.05,
-        # Power: 22 joints at ~0.25 N*m and this clip's ~1.26 rad/s is ~6.9 W, so
-        # -0.02 is about -0.14 a step, 2% of the budget -- jumper.dance's weight.
+        # Power: 22 joints at ~0.25 N*m and this clip's ~0.76 rad/s is ~4.2 W, so
+        # -0.02 is about -0.08 a step, 1% of the budget -- jumper.dance's weight.
         power_weight=-0.02,
         # Torque above the continuous rating: anchored to the servo, not the clip
         # -- one joint at the plateau costs 0.6, 9% of the budget.
@@ -96,7 +98,7 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         self_collision_weight=-1.0,
         self_collision_force=1.0,
         # ── Terminations ──────────────────────────────────────────────────
-        # Root height: this clip moves the body through 102-115 mm, a 13 mm band,
+        # Root height: this clip moves the body through 103-115 mm, a 12 mm band,
         # so 40 mm exceeds all of it and cannot fire on a policy merely tracking
         # badly -- jumper.dance's rule, and its number.
         anchor_height_error=0.04,
