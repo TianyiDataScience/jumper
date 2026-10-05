@@ -1,9 +1,9 @@
 {
   "_source": "scripts/export.py -- re-export whenever the env / robot / agent config changes",
   "_checkpoint": {
-    "path": "logs\\jumper\\jumper.gesture_flash\\2026-10-05_15-48-59\\model_1499.pt",
-    "run": "logs\\jumper\\jumper.gesture_flash\\2026-10-05_15-48-59",
-    "iteration": "model_1499"
+    "path": "logs\\jumper\\jumper.gesture_flash\\2026-10-05_22-06-24\\model_2999.pt",
+    "run": "logs\\jumper\\jumper.gesture_flash\\2026-10-05_22-06-24",
+    "iteration": "model_2999"
   },
   "_schema": "isaac_layout v1",
   "obs_joint_order": [
@@ -315,7 +315,7 @@
   "reference": {
     "residual_action": false,
     "rec_hz": 50.0,
-    "duration": 7.98,
+    "duration": 7.24,
     "lookahead_s": [
       0.04,
       0.1,
@@ -323,6 +323,6 @@
     ],
     "starts_on_entry": true,
     "file": "flash.motion.trajectory.json",
-    "n_frames": 399
+    "n_frames": 362
   }
 }

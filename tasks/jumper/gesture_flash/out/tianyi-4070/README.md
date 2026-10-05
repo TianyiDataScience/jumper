@@ -1,6 +1,6 @@
 # Deployment bundle: jumper.gesture_flash
 
-Source checkpoint: `C:\Users\user\Documents\Claude\jumper\logs\jumper\jumper.gesture_flash\2026-10-05_15-48-59\model_1499.pt`
+Source checkpoint: `C:\Users\user\Documents\Claude\jumper\logs\jumper\jumper.gesture_flash\2026-10-05_22-06-24\model_2999.pt`
 
 Generated from a live environment by `scripts/export.py`.
 **Do not edit by hand** -- re-export whenever the config changes; values
