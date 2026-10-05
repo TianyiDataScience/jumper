@@ -1,0 +1,231 @@
+{
+  "name": "flash",
+  "description": "The flash step: crouches with both claws up on guard, then snaps the body sideways -- shifted, leaned and twisted -- and freezes, left, right, left, right.",
+  "dt": 0.02,
+  "keyframes": [
+    {
+      "t": 0.0,
+      "set": {
+        "LM_J0_joint": -0.417,
+        "LM_J1_joint": 0.248,
+        "LM_J2_joint": -1.641,
+        "RM_J0_joint": 0.417,
+        "RM_J1_joint": -0.249,
+        "RM_J2_joint": 1.644,
+        "LR_J0_joint": 0.169,
+        "LR_J1_joint": 0.6,
+        "LR_J2_joint": -1.904,
+        "RR_J0_joint": -0.17,
+        "RR_J1_joint": -0.601,
+        "RR_J2_joint": 1.908
+      }
+    },
+    {
+      "t": 0.9,
+      "set": {
+        "LF_J0_joint": -0.35,
+        "LF_J1_joint": -1.95,
+        "LF_J2_joint": -0.75,
+        "LF_J3_joint": -1.4,
+        "LF_J4_joint": 0.0,
+        "RF_J0_joint": 0.35,
+        "RF_J1_joint": -1.95,
+        "RF_J2_joint": 0.75,
+        "RF_J3_joint": 1.4,
+        "RF_J4_joint": -0.0,
+        "LM_J0_joint": -0.417,
+        "LM_J1_joint": 0.4459,
+        "LM_J2_joint": -1.8078,
+        "RM_J0_joint": 0.417,
+        "RM_J1_joint": -0.4471,
+        "RM_J2_joint": 1.8109,
+        "LR_J0_joint": 0.169,
+        "LR_J1_joint": 0.8062,
+        "LR_J2_joint": -2.0469,
+        "RR_J0_joint": -0.17,
+        "RR_J1_joint": -0.8078,
+        "RR_J2_joint": 2.0512
+      }
+    },
+    {
+      "t": 1.3
+    },
+    {
+      "t": 1.48,
+      "set": {
+        "LM_J0_joint": -0.7263,
+        "LM_J1_joint": 0.8186,
+        "LM_J2_joint": -2.0961,
+        "RM_J0_joint": 0.0776,
+        "RM_J1_joint": -0.0787,
+        "RM_J2_joint": 1.4571,
+        "LR_J0_joint": -0.0963,
+        "LR_J1_joint": 1.2403,
+        "LR_J2_joint": -2.2939,
+        "RR_J0_joint": -0.4789,
+        "RR_J1_joint": -0.4777,
+        "RR_J2_joint": 1.7925,
+        "LF_J0_joint": -0.1,
+        "LF_J1_joint": -1.95,
+        "LF_J2_joint": -0.75,
+        "LF_J3_joint": -1.4,
+        "LF_J4_joint": 0.0,
+        "RF_J0_joint": 0.1,
+        "RF_J1_joint": -1.95,
+        "RF_J2_joint": 0.75,
+        "RF_J3_joint": 1.4,
+        "RF_J4_joint": -0.0
+      }
+    },
+    {
+      "t": 2.03
+    },
+    {
+      "t": 2.33,
+      "set": {
+        "LM_J0_joint": -0.0777,
+        "LM_J1_joint": 0.0785,
+        "LM_J2_joint": -1.4566,
+        "RM_J0_joint": 0.7266,
+        "RM_J1_joint": -0.8226,
+        "RM_J2_joint": 2.1024,
+        "LR_J0_joint": 0.4777,
+        "LR_J1_joint": 0.476,
+        "LR_J2_joint": -1.7895,
+        "RR_J0_joint": 0.0955,
+        "RR_J1_joint": -1.2443,
+        "RR_J2_joint": 2.3005,
+        "LF_J0_joint": -0.6,
+        "LF_J1_joint": -1.95,
+        "LF_J2_joint": -0.75,
+        "LF_J3_joint": -1.4,
+        "LF_J4_joint": 0.0,
+        "RF_J0_joint": 0.6,
+        "RF_J1_joint": -1.95,
+        "RF_J2_joint": 0.75,
+        "RF_J3_joint": 1.4,
+        "RF_J4_joint": -0.0
+      }
+    },
+    {
+      "t": 2.88
+    },
+    {
+      "t": 3.18,
+      "set": {
+        "LM_J0_joint": -0.7263,
+        "LM_J1_joint": 0.8186,
+        "LM_J2_joint": -2.0961,
+        "RM_J0_joint": 0.0776,
+        "RM_J1_joint": -0.0787,
+        "RM_J2_joint": 1.4571,
+        "LR_J0_joint": -0.0963,
+        "LR_J1_joint": 1.2403,
+        "LR_J2_joint": -2.2939,
+        "RR_J0_joint": -0.4789,
+        "RR_J1_joint": -0.4777,
+        "RR_J2_joint": 1.7925,
+        "LF_J0_joint": -0.1,
+        "LF_J1_joint": -1.95,
+        "LF_J2_joint": -0.75,
+        "LF_J3_joint": -1.4,
+        "LF_J4_joint": 0.0,
+        "RF_J0_joint": 0.1,
+        "RF_J1_joint": -1.95,
+        "RF_J2_joint": 0.75,
+        "RF_J3_joint": 1.4,
+        "RF_J4_joint": -0.0
+      }
+    },
+    {
+      "t": 3.73
+    },
+    {
+      "t": 4.03,
+      "set": {
+        "LM_J0_joint": -0.0777,
+        "LM_J1_joint": 0.0785,
+        "LM_J2_joint": -1.4566,
+        "RM_J0_joint": 0.7266,
+        "RM_J1_joint": -0.8226,
+        "RM_J2_joint": 2.1024,
+        "LR_J0_joint": 0.4777,
+        "LR_J1_joint": 0.476,
+        "LR_J2_joint": -1.7895,
+        "RR_J0_joint": 0.0955,
+        "RR_J1_joint": -1.2443,
+        "RR_J2_joint": 2.3005,
+        "LF_J0_joint": -0.6,
+        "LF_J1_joint": -1.95,
+        "LF_J2_joint": -0.75,
+        "LF_J3_joint": -1.4,
+        "LF_J4_joint": 0.0,
+        "RF_J0_joint": 0.6,
+        "RF_J1_joint": -1.95,
+        "RF_J2_joint": 0.75,
+        "RF_J3_joint": 1.4,
+        "RF_J4_joint": -0.0
+      }
+    },
+    {
+      "t": 4.58
+    },
+    {
+      "t": 4.93,
+      "set": {
+        "LM_J0_joint": -0.417,
+        "LM_J1_joint": 0.4459,
+        "LM_J2_joint": -1.8078,
+        "RM_J0_joint": 0.417,
+        "RM_J1_joint": -0.4471,
+        "RM_J2_joint": 1.8109,
+        "LR_J0_joint": 0.169,
+        "LR_J1_joint": 0.8062,
+        "LR_J2_joint": -2.0469,
+        "RR_J0_joint": -0.17,
+        "RR_J1_joint": -0.8078,
+        "RR_J2_joint": 2.0512,
+        "LF_J0_joint": -0.35,
+        "LF_J1_joint": -1.95,
+        "LF_J2_joint": -0.75,
+        "LF_J3_joint": -1.4,
+        "LF_J4_joint": 0.0,
+        "RF_J0_joint": 0.35,
+        "RF_J1_joint": -1.95,
+        "RF_J2_joint": 0.75,
+        "RF_J3_joint": 1.4,
+        "RF_J4_joint": -0.0
+      }
+    },
+    {
+      "t": 5.43
+    },
+    {
+      "t": 6.33,
+      "set": {
+        "LM_J0_joint": -0.417,
+        "LM_J1_joint": 0.248,
+        "LM_J2_joint": -1.641,
+        "RM_J0_joint": 0.417,
+        "RM_J1_joint": -0.249,
+        "RM_J2_joint": 1.644,
+        "LR_J0_joint": 0.169,
+        "LR_J1_joint": 0.6,
+        "LR_J2_joint": -1.904,
+        "RR_J0_joint": -0.17,
+        "RR_J1_joint": -0.601,
+        "RR_J2_joint": 1.908,
+        "LF_J0_joint": -0.5507,
+        "LF_J1_joint": -1.0658,
+        "LF_J2_joint": -0.4408,
+        "LF_J3_joint": -1.374,
+        "LF_J4_joint": 0.0,
+        "RF_J0_joint": 0.5524,
+        "RF_J1_joint": -1.066,
+        "RF_J2_joint": 0.4414,
+        "RF_J3_joint": 1.4173,
+        "RF_J4_joint": 0.0
+      }
+    }
+  ]
+}
