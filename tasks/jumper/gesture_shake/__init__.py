@@ -18,10 +18,11 @@ of mass is over the middle feet, and no three legs hold it -- so it steps in
 tripods, one always standing, and its claws take turns as the arms. Every beat one
 tripod swings: its claw is flung into the next shape (up in a V, across in front,
 out flat) while its two legs step, and the body bobs, twists with the claw and
-leans into it. Seven beats travel 210 mm to the left, seven quicker ones back; the
-body crouches to 94 mm (HOME stands at 107) and shudders at 5 Hz throughout,
-harder towards the end; then it squares up, leans back over its four legs and
-raises both claws, held 0.7 s.
+leans into it. It drops into a wide stance first, both tripods stepping out as the
+body crouches to 94 mm (HOME stands at 107); then seven beats travel 210 mm to the
+left and seven quicker ones back, every foot lifted 30 mm, the body shuddering at
+5 Hz throughout, harder towards the end; then it squares up, leans back over its
+four legs and raises both claws, held 0.7 s.
 
 Earlier clips showed that the momentum the claws carry decides what trains. The
 first two whipped extended claws the same way as the body's yaw, 1518 and 688
@@ -29,8 +30,10 @@ mN*m of yaw torque at the 95th percentile for the feet to react, and neither
 trained on an RTX 4070 (2026-10-05). The fourth swung guarded claws against the
 twist, 29 mN*m, and trained (joint error 0.083) -- and was rejected by the user as
 a shiver in place, not the dance: it had been designed from the move's name, before
-the reference was at hand. This one asks 621, at the pace it does because faster
-asked 808; `synth_steps.py` and `env_cfg.py` have the measurements.
+the reference was at hand. The sixth, built from the reference, travelled 202 mm
+once trained, but its feet lifted 8 mm and its shudder was 3 mm, and on video it
+shuffled. This one asks 619, at the pace it does because faster asked 808;
+`synth_steps.py` and `env_cfg.py` have the measurements.
 
 There is no music, and nothing to export a performance video with: export with
 `--no-video`.
