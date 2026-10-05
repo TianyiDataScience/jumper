@@ -14,17 +14,21 @@ degrees away over the planted leg and twists, the arm on the foot's side is flun
 out low and wide -- held 0.12 s, snapped back in 0.18 s, the body a third of a
 shoulder width over; still again, then the other way.
 
-On the crab the middle leg on the flash side shoots out 50 mm sideways (and 20 mm
-back), the body drops from 107 to 90 mm, leans 9.7 degrees over the other side
-and twists 11.5 degrees against the claw on the flash side, which is flung out low
-and wide, jaw open; then all of it snaps back, the four legs left behind scuttle
-after it in two quick pairs, and the crab stands still 80 mm over. Left, right,
-left, right, every 1.6 s. `synth_steps.py` has why each number is where it is.
+On the crab the middle leg on the flash side shoots out sideways, lifted 30 mm, to
+land about 58 mm out; the body drops from 107 to 90 mm, leans 20.6 degrees over
+the other side and twists 11.5 degrees against the claw on the flash side, which
+is flung out low and wide, jaw open; then all of it snaps back, the four legs left
+behind scuttle after it in two quick pairs, each foot lifted 25 mm, and the crab
+stands still 80 mm over. Left, right, left, right, every 1.6 s. `synth_steps.py`
+has why each number is where it is.
 
-The previous clip snapped the body 20 mm sideways over feet that never moved. It
+An earlier clip snapped the body 20 mm sideways over feet that never moved. It
 trained (joint error 0.121 on an RTX 4070, 2026-10-05) and was rejected by the user
 as a sway, not the dance: it had been designed from the move's name, before the
-reference was at hand.
+reference was at hand. The one before this one carried the body 80 mm and kept
+the dancer's rhythm once trained (joint error 0.084), but it leaned 10 degrees
+against the dancer's 20-25, and its feet slid out and after it at most 16 mm off
+the floor, where no one could see them step.
 
 There is no music, and nothing to export a performance video with: export with
 `--no-video`.
