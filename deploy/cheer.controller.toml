@@ -1,4 +1,4 @@
-# The state machine, minus the modes, for the `cheer` bundle: walking plus two
+# The state machine, minus the modes, for the `cheer` bundle: walking plus four
 # gestures. Everything above the mode rules is the jumper cascade's, unchanged.
 #
 # `manifests.json` owns which modes exist, where each one came from and which
@@ -115,6 +115,14 @@ enter = "gesture_hello"
 [[fsm.rule]]
 when = "button:gesture_cheer"
 enter = "gesture_cheer"
+
+[[fsm.rule]]
+when = "button:gesture_shake"
+enter = "gesture_shake"
+
+[[fsm.rule]]
+when = "button:gesture_flash"
+enter = "gesture_flash"
 
 # The last rule must be `always`: a cascade that can fall through the bottom has
 # no defined behaviour, and the crate refuses to load one that does.

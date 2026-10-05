@@ -240,14 +240,14 @@
       }
     },
     "cheer": {
-      "description": "jumper.tripod walking by default, with two gestures from it: waving hello on up on the d-pad (1) and the keyframed cheer on down on the d-pad (2), and Menu (Ctrl) on its own to leave either early. The gesture bindings are the jumper bundle's, the cheer taking the bow's place on down.",
+      "description": "jumper.tripod walking by default, with four gestures from it: waving hello on up on the d-pad (1), the keyframed cheer on down (2), the bear shake on left (3) and the flash step on right (4), and Menu (Ctrl) on its own to leave any of them early. The gesture bindings are the jumper bundle's four gesture slots, the keyframed gestures taking the bow's, the paw's and the salute's places.",
       "fsm": "cheer.controller.toml",
       "leave": [
         {
           "name": "leave_motion",
-          "leaves": ["gesture_hello", "gesture_cheer"],
-          "pad": {"button": "menu", "on": "fall", "from": ["gesture_hello", "gesture_cheer"]},
-          "keys": {"key": ["ctrl"], "on": "fall", "from": ["gesture_hello", "gesture_cheer"]}
+          "leaves": ["gesture_hello", "gesture_cheer", "gesture_shake", "gesture_flash"],
+          "pad": {"button": "menu", "on": "fall", "from": ["gesture_hello", "gesture_cheer", "gesture_shake", "gesture_flash"]},
+          "keys": {"key": ["ctrl"], "on": "fall", "from": ["gesture_hello", "gesture_cheer", "gesture_shake", "gesture_flash"]}
         }
       ],
       "modes": {
@@ -269,6 +269,20 @@
           "_reached_by": "Down on the d-pad; 2 on the keyboard. From locomotion only.",
           "pad": {"button": "dpad_down", "on": "toggle", "from": ["locomotion"]},
           "keys": {"key": ["key_2", "keypad_2"], "on": "toggle", "from": ["locomotion"]}
+        },
+        "gesture_shake": {
+          "task": "jumper.gesture_shake",
+          "policy": "tasks/jumper/gesture_shake/out/tianyi-4070",
+          "_reached_by": "Left on the d-pad; 3 on the keyboard. From locomotion only: the jumper bundle's third gesture slot, the paw's.",
+          "pad": {"button": "dpad_left", "on": "toggle", "from": ["locomotion"]},
+          "keys": {"key": ["key_3", "keypad_3"], "on": "toggle", "from": ["locomotion"]}
+        },
+        "gesture_flash": {
+          "task": "jumper.gesture_flash",
+          "policy": "tasks/jumper/gesture_flash/out/tianyi-4070",
+          "_reached_by": "Right on the d-pad; 4 on the keyboard. From locomotion only: the jumper bundle's fourth gesture slot, the salute's.",
+          "pad": {"button": "dpad_right", "on": "toggle", "from": ["locomotion"]},
+          "keys": {"key": ["key_4", "keypad_4"], "on": "toggle", "from": ["locomotion"]}
         }
       }
     }
