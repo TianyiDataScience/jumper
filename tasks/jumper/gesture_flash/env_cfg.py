@@ -7,25 +7,31 @@ the rule is applied to this clip's measurements and the result is quoted -- read
 
 ## This clip, measured
 
-At the 50 Hz control rate (7.2 s): per-joint position std 0.205 rad at the median
-and 0.399 at the most active, RMS amplitude 0.224 rad; joint velocity RMS 1.87
-rad/s, per-joint std 1.47 at the median and 3.30 at the most active, peaking at
-14.4 rad/s (LM_J2, the middle leg shooting out); the base between 90 and 107 mm;
-tilt at most 9.7 degrees; 80 mm sideways at each flash.
+At the 50 Hz control rate (7.2 s): per-joint position std 0.217 rad at the median
+and 0.379 at the most active, RMS amplitude 0.234 rad; joint velocity RMS 2.37
+rad/s, per-joint std 1.58 at the median and 4.19 at the most active, peaking at
+17.8 rad/s (LM_J2, the middle leg shooting out); the base between 90 and 107 mm;
+tilt at most 20.6 degrees; 80 mm sideways at each flash.
 
 The torque the feet must supply, from the clip's angular momentum about its centre
-of mass (kinematic, contacts off), at the 95th percentile: 244 mN*m in yaw and 551
-in roll. The previous flash clip, which trained, asked 361 in yaw.
+of mass (kinematic, contacts off), at the 95th percentile: 234 mN*m in yaw and 997
+in roll -- the lean. The previous clip asked 244 and 551 and trained; the shake,
+727 in roll, trained too. The feet answer roll by shifting weight between the left
+feet and the right, 0.3-0.4 m apart; yaw they can only answer with friction.
 
 Played open loop on this task's actuators (PD to the reference, no policy), the
-clip runs all 361 steps without a termination: joint error median 0.025 rad, p95
-0.216, worst 0.769 (LM_J2, the leg that shoots out, lagging); cheer, the control,
-0.011 / 0.087 / 0.226. The body gets 47-53 mm of each 80 mm flash that way. In the
-training environment (32 envs from the clip's start, randomisation and pushes on,
-action = reference) no support-foot termination fires.
+clip runs all 361 steps without a termination: joint error median 0.026 rad, p95
+0.246, worst 0.811 (LM_J2, the leg that shoots out, lagging); cheer, the control,
+0.011 / 0.087 / 0.226. The body tilts 19.5 degrees that way, and a support foot is
+at most 33.1 mm off its reference height. In the training environment (32 envs
+from the clip's start, randomisation and pushes on, action = reference) no
+support-foot termination fires and the joint-error norm averages 0.371.
 
-**The reward weights are starting points**: no policy has been trained on this
-clip yet.
+**The reward weights are the previous clip's**, which leaned 9.7 degrees and lifted
+its feet 8-20 mm: with them it trained in 3000 iterations on an RTX 4070
+(2026-10-05) to joint error 0.084, without a termination, and the policy flashed
+79-80 mm every 1.65 s -- but it leaned 10.4 degrees against the dancer's 20-25 and
+its feet rose at most 16 mm, so the clip changed and the weights did not.
 """
 
 from __future__ import annotations
@@ -74,20 +80,20 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         # unchanged (5.0) plus the two joint-space terms below (1.5).
         #
         # Joint position: jumper.dance's rule is a std at 0.44 of the clip's RMS
-        # amplitude. Here: 0.44 x 0.224 -> 0.10.
+        # amplitude. Here: 0.44 x 0.234 -> 0.10.
         joint_pos_std=0.10,
         joint_pos_weight=1.0,
-        # Joint velocity: two thirds of the clip's velocity RMS. Here: 1.87 -> 1.25.
+        # Joint velocity: two thirds of the clip's velocity RMS. Here: 2.37 -> 1.6.
         # Half the position weight, so when they disagree the pose wins.
-        joint_vel_std=1.25,
+        joint_vel_std=1.6,
         joint_vel_weight=0.5,
         # Smoothness: -0.1 is calibrated at this action scale (0.25) and the
         # second difference at half of it -- properties of the robot and the
         # action space, not of the clip.
         action_rate_weight=-0.1,
         action_acc_weight=-0.05,
-        # Power: 22 joints at ~0.25 N*m and this clip's ~1.9 rad/s is ~10 W, so
-        # -0.02 is about -0.21 a step, 3% of the budget -- jumper.dance's weight.
+        # Power: 22 joints at ~0.25 N*m and this clip's ~2.4 rad/s is ~13 W, so
+        # -0.02 is about -0.26 a step, 4% of the budget -- jumper.dance's weight.
         power_weight=-0.02,
         # Torque above the continuous rating: anchored to the servo, not the clip
         # -- one joint at the plateau costs 0.6, 9% of the budget.
@@ -103,9 +109,11 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         # so 40 mm exceeds all of it and cannot fire on a policy merely tracking
         # badly -- jumper.dance's rule, and its number.
         anchor_height_error=0.04,
-        # 1 - cos(tilt) = 0.3 is 45.6 degrees, "has fallen over"; the clip leans 9.7.
+        # 1 - cos(tilt) = 0.3 is 45.6 degrees, "has fallen over"; the clip leans 20.6.
         anchor_tilt_error=0.3,
-        # A support foot 50 mm out vertically is half the standing height.
+        # A support foot 50 mm out vertically is half the standing height; this clip
+        # lifts its stepping feet 25-30 mm, and played on the actuators they are at
+        # most 33 mm off.
         support_foot_error=0.05,
         # ── Disturbance ───────────────────────────────────────────────────
         # jumper.dance's: gentler and rarer than mjlab's, sized to a 2 kg robot.

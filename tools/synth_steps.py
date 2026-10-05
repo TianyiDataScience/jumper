@@ -269,20 +269,28 @@ FLASH = {
     # At the deepest point: the base this low (HOME stands at 107 mm; the dancer's
     # hips drop 12-15%), shifted this far toward the flash, leaned away from it
     # (roll, over the planted side), pitched forward, and twisted against the claw
-    # that is flung (yaw), radians. The dancer leans 20-25 degrees; at 0.20 rad
-    # (11.5) the folded legs on the low side miss their IK by 5 mm, at 0.17 none do.
+    # that is flung (yaw), radians. The dancer leans 20-25 degrees; with the pitch
+    # this roll tilts the body 20.6. The legs planted on the low side reach at any
+    # lean up to 0.38; what limits it is the middle leg shooting out on the high
+    # side (`wide`). At 0.17 the trained policy leaned 10.4 degrees, half the
+    # dancer's.
     "peak_z": 0.090,
     "peak_shift": 0.025,
-    "roll": 0.17,
+    "roll": 0.36,
     "pitch": 0.03,
     "yaw": 0.20,
     # The middle leg on the flash side shoots out sideways and slightly back from
-    # its place under the deepest pose, metres. Further than 50 mm out, its IK
-    # misses by several millimetres at this roll.
-    "wide": 0.05,
+    # its place under the deepest pose, metres. The lean already carries that place
+    # 22 mm further out, so on the floor the foot moves about 58 mm. The higher
+    # the body rolls that side the less floor the leg reaches: at 9.7 degrees 55 mm
+    # beyond its place, at 16.6 35, at 20.6 25 -- beyond that it misses its IK,
+    # flips branch and whips its knee past the servo's corner speed. 10 mm short of
+    # the limit its knee peaks at 17.8 rad/s; 2.5 mm short of it, at 27.
+    "wide": 0.015,
     "back": 0.02,
-    # It skims the floor out and back rather than stepping high: metres of lift.
-    "skim": 0.008,
+    # How high it lifts on the way out and back, metres. At 8 mm the trained
+    # policy's foot rose at most 16 mm: a slide no one could see.
+    "skim": 0.03,
     # Where the body stands after each flash: this far toward it (the dancer moves
     # 0.3-0.4 shoulder widths). The snap back carries it `back_share` of the way;
     # the four legs that did not step then follow in two quick diagonal pairs of
@@ -291,6 +299,10 @@ FLASH = {
     "drift": 0.08,
     "back_share": 0.5,
     "follow_s": 0.15,
+    # How high those follow steps lift, metres. At `LIFT`'s 12-20 mm the trained
+    # policy's feet rose at most 16 mm and the scuttle could barely be seen; at 30
+    # the rear legs miss their IK by 3-4 mm, at 25 by under 2.
+    "follow_lift": 0.025,
     # The claw on the flash side, flung out low and wide: its tip in the base frame
     # (left claw; the right one mirrored), metres.
     "claw_tip": [0.09, 0.27, -0.025],
@@ -359,9 +371,9 @@ def flash(p: dict) -> Builder:
         first = (near, far)
         second = ("RF", "RR") if s > 0 else ("LF", "LR")
         m.segment(p["follow_s"], tween(back, half), shut,
-                  [(x, 0.0, 1.0, m.landing(rest, x)) for x in first])
+                  [(x, 0.0, 1.0, m.landing(rest, x), p["follow_lift"]) for x in first])
         m.segment(p["follow_s"], tween(half, rest), shut,
-                  [(x, 0.0, 1.0, m.landing(rest, x)) for x in second])
+                  [(x, 0.0, 1.0, m.landing(rest, x), p["follow_lift"]) for x in second])
         b = rest
     m.segment(p["still_s"], lambda u: b, shut)
     return m
