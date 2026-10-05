@@ -1,28 +1,36 @@
-"""jumper.gesture_shake -- a bear shaking off water, learned by imitation.
+"""jumper.gesture_shake -- the bear shake, learned by imitation.
 
-The crab's version of 狗熊哆嗦毛 ("the bear shakes its fur"), a move from Shanghe
-drum yangge that went viral in September 2026: knees bent, the waist drives the
-whole body into a fast shiver. A one-shot gesture on the dance machinery, like
-`jumper.gesture_cheer`, and written the same way: `media/shake.npz` comes from the
-keyframes in `media/shake.keyframes.json` through `tools/synth_gesture.py`.
+The crab's version of 狗熊哆嗦毛 ("the bear shakes its fur"), a move from Shandong
+drum yangge that went viral in September 2026. A one-shot gesture on the dance
+machinery, like `jumper.gesture_cheer`; `media/shake.npz` is written from
+`media/shake.steps.json` by `tools/synth_steps.py`, because the move travels and
+`tools/synth_gesture.py` can only write poses the robot holds at rest.
 
-The robot takes cheer's leaning stance on its four legs, crouches 12 mm and holds
-both claws up on guard (flash's arm pose), then rolls and twists its body from side
-to side while the claws swing **against** the twist and snap open and shut -- two
-slow shakes, three faster, four fast -- and freezes, claws shut, before standing up.
-The body poses were solved with the four feet held where they stand (a scratch
-least-squares IK on `_Robot`'s kinematics, within 1 mm of every planted foot), so
-each keyframe is a pose the robot holds without sliding.
+The clip follows the dancer in the reference video the user chose (a 2026 meme
+compilation, measured frame by frame): six seconds without a pause in a deep horse
+stance, a new stance every 0.25-0.5 s in a cross step, travelling across the stage
+and back; the arms the biggest thing in it, swung through up overhead, crossed in
+front and flung out flat, leading the torso's twist; the shoulders and the whole
+body shuddering at 4-6 Hz; and a final pose with both arms raised.
 
-This is the third clip, and the first two are why the claws counter-swing. Both
-whipped the claws the same way the body yawed, with the arms flung out sideways, so
-the swing's angular momentum added to the body's and the four feet had to react
-all of it: 1518 and 688 mN*m of yaw torque at the 95th percentile, against flash's
-361. On an RTX 4070 (2026-10-05) neither trained -- a joint-position error of 0.65-0.68
-at iteration 600-1500 (cheer 0.078, flash 0.121) with over half the episodes ending
-on a middle leg kicked off the floor -- and neither lower exploration noise nor a
-looser foot bound changed that. Counter-swinging guarded claws bring the demand to
-29 mN*m. `env_cfg.py` has the measurements.
+The crab cannot swing both claws and step at once -- with both claws up its centre
+of mass is over the middle feet, and no three legs hold it -- so it steps in
+tripods, one always standing, and its claws take turns as the arms. Every beat one
+tripod swings: its claw is flung into the next shape (up in a V, across in front,
+out flat) while its two legs step, and the body bobs, twists with the claw and
+leans into it. Seven beats travel 210 mm to the left, seven quicker ones back; the
+body crouches to 94 mm (HOME stands at 107) and shudders at 5 Hz throughout,
+harder towards the end; then it squares up, leans back over its four legs and
+raises both claws, held 0.7 s.
+
+Earlier clips showed that the momentum the claws carry decides what trains. The
+first two whipped extended claws the same way as the body's yaw, 1518 and 688
+mN*m of yaw torque at the 95th percentile for the feet to react, and neither
+trained on an RTX 4070 (2026-10-05). The fourth swung guarded claws against the
+twist, 29 mN*m, and trained (joint error 0.083) -- and was rejected by the user as
+a shiver in place, not the dance: it had been designed from the move's name, before
+the reference was at hand. This one asks 621, at the pace it does because faster
+asked 808; `synth_steps.py` and `env_cfg.py` have the measurements.
 
 There is no music, and nothing to export a performance video with: export with
 `--no-video`.
@@ -36,7 +44,7 @@ from ..common.assets import JUMPER_ASSETS
 register(
     id="jumper.gesture_shake",
     assets=JUMPER_ASSETS,
-    description="jumper hexapod imitating a keyframed bear shake (crouched, the body shaken side to side, the claws swinging against it); the clip is committed in "
+    description="jumper hexapod imitating the bear shake (a crouched tripod cross-step travelling sideways and back, the claws flung in turn, the body shuddering); the clip is committed in "
                 "tasks/jumper/gesture_shake/media/",
     tags=("imitation", "jumper", "gesture", "flat"),
 )

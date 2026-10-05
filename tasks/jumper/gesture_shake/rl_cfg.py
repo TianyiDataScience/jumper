@@ -17,16 +17,16 @@ def agent_cfg() -> RslRlOnPolicyRunnerCfg:
     """This task's rsl_rl config: `logs/<model>/jumper.gesture_shake/<date-time>`."""
     return jumper_ppo_baseline(
         experiment_name="jumper.gesture_shake",
-        # Off, and not a tuning choice: the claws whip to the same side, both
-        # shoulders turning by the same angle, which is not the mirror image of
-        # itself, so mirroring its samples would train a different shake.
+        # Off, and not a tuning choice: the clip travels left first, on the right
+        # tripod, so its mirror travels right first -- another clip at every
+        # instant -- and mirroring its samples would train a different shake.
         # `symmetry.py` would also refuse the reference terms.
         symmetry=False,
         use_data_augmentation=False,
         use_mirror_loss=False,
         actor_hidden_dims=(512, 256, 128, 64),
         critic_hidden_dims=(512, 256, 128, 64),
-        # Cheer's and flash's. 0.5 / 0.001 was tried on the second clip (RTX 4070,
+        # Cheer's and flash's. 0.5 / 0.001 was tried on an earlier clip (RTX 4070,
         # 2026-10-05) and stalled at iteration 600 the same way 1.0 / 0.005 had:
         # the noise was a symptom of the clip, not the cause -- see `__init__.py`.
         init_std=1.0,

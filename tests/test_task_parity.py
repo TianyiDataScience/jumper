@@ -66,8 +66,8 @@ NOT_LOCOMOTION = {
     "jumper.gesture_hello",
     "jumper.gesture_paw",
     "jumper.gesture_salute",
-    # The same machinery again, with a clip written from keyframes by
-    # tools/synth_gesture.py rather than imported.
+    # The same machinery again, with a clip written rather than imported: from
+    # keyframes by tools/synth_gesture.py, and stepping by tools/synth_steps.py.
     "jumper.gesture_cheer",
     "jumper.gesture_flash",
     "jumper.gesture_shake",
