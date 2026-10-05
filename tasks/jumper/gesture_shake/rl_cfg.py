@@ -26,10 +26,14 @@ def agent_cfg() -> RslRlOnPolicyRunnerCfg:
         use_mirror_loss=False,
         actor_hidden_dims=(512, 256, 128, 64),
         critic_hidden_dims=(512, 256, 128, 64),
-        init_std=1.0,
-        # Half the baseline's: imitation needs less exploration than locomotion,
-        # and a rising `Policy/mean_std` costs precision terms first.
-        entropy_coef=0.005,
+        # Half cheer's, and the entropy bonus a fifth of it. On the RTX 4070 the
+        # shake stalled with cheer's 1.0 / 0.005: mean action std stayed at 0.20-0.21
+        # at iteration 600 (cheer 0.04, flash 0.06) and 56-57% of episodes ended on
+        # a support foot. The same model_600 played without the noise (64 envs, 500
+        # steps) tripped nothing: LM and RR peaked at 49 mm against the 50 mm limit,
+        # so the noise alone was carrying them over.
+        init_std=0.5,
+        entropy_coef=0.001,
         learning_rate=1.0e-3,
         desired_kl=0.01,
         gamma=0.99,

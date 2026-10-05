@@ -104,8 +104,12 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         anchor_height_error=0.04,
         # 1 - cos(tilt) = 0.3 is 45.6 degrees, "has fallen over"; the clip leans 8.0.
         anchor_tilt_error=0.3,
-        # A support foot 50 mm out vertically is half the standing height.
-        support_foot_error=0.05,
+        # 70 mm, not the family's 50: the shake rolls the body on its four legs, and
+        # a noise-free policy at iteration 600 already reached 49 mm on LM and RR
+        # while tracking (RTX 4070, 2026-10-05), so 50 mm ended episodes on the
+        # choreography rather than on a foot gone wrong. 70 mm is still two thirds of
+        # the standing height.
+        support_foot_error=0.07,
         # ── Disturbance ───────────────────────────────────────────────────
         # jumper.dance's: gentler and rarer than mjlab's, sized to a 2 kg robot.
         push_interval_s=(3.0, 8.0),
