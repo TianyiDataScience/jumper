@@ -255,9 +255,10 @@ FLASH = {
     "order": [1, -1, 1, -1],
     # Seconds: standing still before each flash (the first one, and the rest), the
     # sway that winds it up, the flash out, the deepest point held, and the snap back.
-    # The reference repeats every 1.6-1.7 s: 0.1 + 0.18 + 0.12 + 0.18 out and back.
+    # The reference repeats every 1.6-1.7 s: 0.1 + 0.18 + 0.12 + 0.18 out and back,
+    # two follow steps of 0.15 (`follow_s`), and 0.75 still.
     "first_still_s": 0.6,
-    "still_s": 1.05,
+    "still_s": 0.75,
     "sway_s": 0.10,
     "out_s": 0.18,
     "peak_s": 0.12,
@@ -282,11 +283,14 @@ FLASH = {
     "back": 0.02,
     # It skims the floor out and back rather than stepping high: metres of lift.
     "skim": 0.008,
-    # Where the body stands after the snap back: this far toward the flash (the
-    # dancer drifts 0.3-0.4 shoulder widths). The legs that did not step stand this
-    # far off their places until the next flash brings the body back; at 50 mm a
-    # rear leg misses its IK by 4 mm in that next flash.
-    "drift": 0.04,
+    # Where the body stands after each flash: this far toward it (the dancer moves
+    # 0.3-0.4 shoulder widths). The snap back carries it `back_share` of the way;
+    # the four legs that did not step then follow in two quick diagonal pairs of
+    # `follow_s` each, carrying it the rest. Without them the body can go no
+    # further than about 40 mm: the legs left behind run out of reach.
+    "drift": 0.08,
+    "back_share": 0.5,
+    "follow_s": 0.15,
     # The claw on the flash side, flung out low and wide: its tip in the base frame
     # (left claw; the right one mirrored), metres.
     "claw_tip": [0.09, 0.27, -0.025],
@@ -299,8 +303,9 @@ def flash(p: dict) -> Builder:
     """The flash step, as the reference does it: standing still, a sway, then in a
     fifth of a second the middle leg on one side shoots out sideways, the body drops
     and leans away over the planted legs, twisting, while that side's claw is flung
-    out low and wide; a beat held, then everything snaps back to standing, the body
-    a few centimetres over. Still again, then the other way."""
+    out low and wide; a beat held, then everything snaps back to standing and the
+    legs left behind scuttle after it, the body 8 cm over. Still again, then the
+    other way."""
     m = Builder()
     shut = lambda u: JAWS_SHUT
     b = m.home.copy()
@@ -319,6 +324,12 @@ def flash(p: dict) -> Builder:
         rest = m.home.copy()
         rest[:2] = b[:2]
         rest[1] += s * p["drift"]
+        # Where the snap back leaves the body, and where the first follow step does:
+        # the legs left behind cannot reach `drift` from where they stand.
+        back = rest.copy()
+        back[1] -= s * p["drift"] * (1.0 - p["back_share"])
+        half = rest.copy()
+        half[1] -= s * p["drift"] * (1.0 - p["back_share"]) / 2.0
         out = m.landing(peak, leg)
         out[0] -= p["back"]
         out[1] += s * p["wide"]
@@ -338,9 +349,19 @@ def flash(p: dict) -> Builder:
                   [(leg, 0.0, 1.0, out, p["skim"])], free=(claw,))
         m.segment(p["peak_s"], lambda u, peak=peak: peak, arm(flung, flung, 0.0, 0.0),
                   free=(claw,))
-        m.segment(p["back_s"], tween(peak, rest), arm(flung, home, 0.0, 1.0),
+        m.segment(p["back_s"], tween(peak, back), arm(flung, home, 0.0, 1.0),
                   [(leg, 0.0, 1.0, m.landing(rest, leg), p["skim"])], free=(claw,))
         m.feet[claw] = landed
+        # The four legs that stayed behind follow in two diagonal pairs, so that
+        # four feet stand under the body through each: the scuttle that carries
+        # the crab over.
+        near, far = ("LR", "RM") if s > 0 else ("RR", "LM")
+        first = (near, far)
+        second = ("RF", "RR") if s > 0 else ("LF", "LR")
+        m.segment(p["follow_s"], tween(back, half), shut,
+                  [(x, 0.0, 1.0, m.landing(rest, x)) for x in first])
+        m.segment(p["follow_s"], tween(half, rest), shut,
+                  [(x, 0.0, 1.0, m.landing(rest, x)) for x in second])
         b = rest
     m.segment(p["still_s"], lambda u: b, shut)
     return m

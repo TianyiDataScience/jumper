@@ -17,9 +17,9 @@ shoulder width over; still again, then the other way.
 On the crab the middle leg on the flash side shoots out 50 mm sideways (and 20 mm
 back), the body drops from 107 to 90 mm, leans 9.7 degrees over the other side
 and twists 11.5 degrees against the claw on the flash side, which is flung out low
-and wide, jaw open; then all of it snaps back with the body 40 mm over, and the
-crab stands still for a second. Left, right, left, right. `synth_steps.py` has why
-each number is where it is.
+and wide, jaw open; then all of it snaps back, the four legs left behind scuttle
+after it in two quick pairs, and the crab stands still 80 mm over. Left, right,
+left, right, every 1.6 s. `synth_steps.py` has why each number is where it is.
 
 The previous clip snapped the body 20 mm sideways over feet that never moved. It
 trained (joint error 0.121 on an RTX 4070, 2026-10-05) and was rejected by the user
@@ -38,7 +38,7 @@ from ..common.assets import JUMPER_ASSETS
 register(
     id="jumper.gesture_flash",
     assets=JUMPER_ASSETS,
-    description="jumper hexapod imitating the flash step (a middle leg shot out sideways, the body dropped and leaned away, a claw flung; left and right); the clip is committed in "
+    description="jumper hexapod imitating the flash step (a middle leg shot out sideways, the body dropped and leaned away, a claw flung, 8 cm over; left and right); the clip is committed in "
                 "tasks/jumper/gesture_flash/media/",
     tags=("imitation", "jumper", "gesture", "flat"),
 )
