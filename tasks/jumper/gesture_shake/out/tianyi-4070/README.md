@@ -1,6 +1,6 @@
 # Deployment bundle: jumper.gesture_shake
 
-Source checkpoint: `C:\Users\user\Documents\Claude\jumper\logs\jumper\jumper.gesture_shake\2026-10-05_13-41-48\model_1499.pt`
+Source checkpoint: `C:\Users\user\Documents\Claude\jumper\logs\jumper\jumper.gesture_shake\2026-10-05_17-25-03\model_2999.pt`
 
 Generated from a live environment by `scripts/export.py`.
 **Do not edit by hand** -- re-export whenever the config changes; values
