@@ -1,0 +1,13 @@
+- dones=0  duration 10.0 s
+- body: net travel 0.9 cm, path length 70.0 cm, x range 6.8 cm, y (lateral) range 19.8 cm
+- body z: 70..107 mm, bounce ~2.4 Hz, bounce depth p95 23 mm
+- LM_foot_tip_link   lifts  9, max height   39 mm, foot moved 1.2 cm net
+- RM_foot_tip_link   lifts  7, max height   34 mm, foot moved 1.0 cm net
+- LR_foot_tip_link   lifts  7, max height   35 mm, foot moved 1.0 cm net
+- RR_foot_tip_link   lifts  7, max height   34 mm, foot moved 0.7 cm net
+- travel range mm: x 68, y 198; x -53..15, y -13..185
+- base height: start 103 mm, min 70 mm (drop 33 mm); peak |roll| 5.6 deg, peak |pitch| 2.6 deg
+- base z spectrum: dominant 5.00 Hz in 1-12 Hz; fast tremble (>~3 Hz) amplitude p95 5.9 mm
+- claw max world z: LF 218 mm, RF 217 mm
+- mean joint-position error vs reference: 0.035 rad (p95 0.061)
+- lateral excursion t=3.96s: y +185 mm (z 83 mm, roll +3 deg) -> 0.5 s later y +150 mm
