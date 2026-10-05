@@ -372,6 +372,8 @@ SHAKE = {
     # dancer's hips are 20-25% down; 12% is as deep as the legs stay inside their
     # reach while the body bobs, leans and travels over them).
     "crouch_z": 0.094,
+    # Seconds to get down into it, both tripods stepping out on the way.
+    "stance_s": 0.6,
     # Phrases: (seconds a beat, beats, +1 travelling to the robot's left / -1 back).
     # The dancer takes a new stance every 0.25-0.5 s, about two steps a second, and
     # crosses the stage and back; the second phrase is quicker, as theirs builds.
@@ -388,12 +390,14 @@ SHAKE = {
     # a foot stays planted from the middle of one of its tripod's beats to the
     # start of the next, and lands near the middle of that.
     "lead": 0.3,
-    # How high the stepping legs lift, metres: low and quick. In this stance a middle
-    # leg already folds near its limit, and at `LIFT`'s 15 mm its IK misses by 4-6 mm.
-    "lift": 0.008,
+    # How high the stepping legs lift, metres: high enough to see from across the
+    # room -- the dancer stamps into every new stance. At 8 mm the trained policy's
+    # feet rose 10-17 mm and the steps read as a shuffle. Above 30 mm the rear legs,
+    # twisted under the body mid-beat, miss by more than 5 mm at the top of the swing.
+    "lift": 0.030,
     # The stance is a wide one, as the dancer's: every foot lands this much further
-    # out to its side than at HOME, which also leaves the folded middle legs room.
-    "wider": 0.015,
+    # out to its side than at HOME, which also leaves the folded legs room to lift.
+    "wider": 0.020,
     # Knees down this far on every beat, on a squared sine.
     "bob": 0.008,
     # Twisted (yaw) and leaned (roll) towards the side the claw is flung to, radians.
@@ -402,7 +406,8 @@ SHAKE = {
     # The shudder over everything: the body's height and roll, and the flung
     # claw's shoulder, at this rate (the dancer's is 4-6 Hz).
     "tremble_hz": 5.0,
-    "tremble_z": 0.003,
+    # At 3 mm the trained policy shuddered 3.4 mm (95th percentile): too small to see.
+    "tremble_z": 0.007,
     "tremble_roll": 0.03,
     "claw_tremble": 0.08,
     # The bob and the shudder grow by this factor from the first beat to the last.
@@ -444,7 +449,13 @@ def shake(p: dict) -> Builder:
     m.segment(0.3, lambda u: b, shut)
     ready = b.copy()
     ready[2] = p["crouch_z"]
-    m.segment(0.4, tween(b, ready), shut)
+    # Down into the stance while both tripods step out wide, as the dancer drops into
+    # the horse stance before the first beat. Started from HOME's narrower stance,
+    # the left rear foot ends the first beat 45 mm under the body, which has twisted
+    # and travelled over it, and cannot lift from there.
+    m.segment(p["stance_s"], tween(b, ready), shut,
+              [(leg, 0.0, 0.5, m.landing(ready, leg, p["wider"])) for leg in TRIPOD_A]
+              + [(leg, 0.5, 1.0, m.landing(ready, leg, p["wider"])) for leg in TRIPOD_B])
     b = ready.copy()
     total = sum(n for _, n, _ in p["phrases"])
     k, t = 0, 0.0
