@@ -1,0 +1,18 @@
+- dones=0  duration 7.2 s
+- body: net travel 3.1 cm, path length 35.9 cm, x range 3.3 cm, y (lateral) range 8.4 cm
+- body z: 90..107 mm, bounce ~1.8 Hz, bounce depth p95 25 mm
+- LM_foot_tip_link   lifts  6, max height   29 mm, foot moved 3.3 cm net
+- RM_foot_tip_link   lifts  6, max height   30 mm, foot moved 3.0 cm net
+- LR_foot_tip_link   lifts  6, max height   27 mm, foot moved 3.1 cm net
+- RR_foot_tip_link   lifts  6, max height   24 mm, foot moved 3.0 cm net
+- travel range mm: x 33, y 84; x -2..31, y -6..78
+- base height: start 105 mm, min 90 mm (drop 15 mm); peak |roll| 19.3 deg, peak |pitch| 1.4 deg
+- base z spectrum: dominant 1.25 Hz in 1-12 Hz; fast tremble (>~3 Hz) amplitude p95 1.9 mm
+- claw max world z: LF 170 mm, RF 169 mm
+- mean joint-position error vs reference: 0.021 rad (p95 0.058)
+- lateral excursion t=0.88s: y +22 mm (z 94 mm, roll +18 deg) -> 0.5 s later y +60 mm
+- lateral excursion t=5.06s: y +72 mm (z 105 mm, roll -0 deg) -> 0.5 s later y +72 mm
+- flash window 0.74-1.12s: peak tilt 19.0 deg, base min z 91 mm, y +1 -> +53 mm, foot max height mm LM 29 RM 24 LR 26 RR 19
+- flash window 2.40-2.78s: peak tilt 19.3 deg, base min z 90 mm, y +73 -> +20 mm, foot max height mm LM 22 RM 30 LR 20 RR 24
+- flash window 4.06-4.44s: peak tilt 19.2 deg, base min z 91 mm, y -0 -> +52 mm, foot max height mm LM 29 RM 23 LR 27 RR 18
+- flash window 5.72-6.10s: peak tilt 19.3 deg, base min z 90 mm, y +72 -> +18 mm, foot max height mm LM 22 RM 30 LR 20 RR 24
