@@ -1,0 +1,91 @@
+## iteration 200
+- Mean reward: 6.71
+- Mean episode length: 148.72
+- Metrics/motion/error_anchor_ang_vel: 1.3925
+- Metrics/motion/error_body_rot: 0.2350
+- Episode_Termination/anchor_ori: 0.0000
+- Metrics/motion/sampling_top1_prob: 0.2906
+- Metrics/motion/error_anchor_pos: 0.0221
+- Metrics/motion/error_body_ang_vel: 5.4973
+- Metrics/motion/error_body_lin_vel: 0.6996
+- Episode_Termination/time_out: 14.4583
+- Episode_Termination/anchor_pos: 0.0417
+- Metrics/motion/error_anchor_lin_vel: 0.1703
+- Metrics/motion/error_anchor_rot: 0.1078
+- Metrics/motion/error_joint_pos: 0.9646
+- Metrics/motion/error_body_pos: 0.0305
+- Metrics/motion/error_joint_vel: 18.0155
+- Metrics/motion/sampling_top1_bin: 0.3333
+- Episode_Termination/ee_body_pos: 14.9167
+- Metrics/motion/sampling_entropy: 0.8127
+- Iteration time: 1.31s
+- Time elapsed: 1:34:50
+
+## iteration 500
+- Mean reward: 8.35
+- Mean episode length: 100.13
+- Metrics/motion/error_anchor_ang_vel: 1.1079
+- Metrics/motion/error_body_rot: 0.1834
+- Episode_Termination/anchor_ori: 0.0000
+- Metrics/motion/sampling_top1_prob: 0.7129
+- Metrics/motion/error_anchor_pos: 0.0160
+- Metrics/motion/error_body_ang_vel: 4.4287
+- Metrics/motion/error_body_lin_vel: 0.5763
+- Episode_Termination/time_out: 17.6667
+- Episode_Termination/anchor_pos: 0.0000
+- Metrics/motion/error_anchor_lin_vel: 0.1472
+- Metrics/motion/error_anchor_rot: 0.0667
+- Metrics/motion/error_joint_pos: 0.7166
+- Metrics/motion/error_body_pos: 0.0243
+- Metrics/motion/error_joint_vel: 14.9841
+- Metrics/motion/sampling_top1_bin: 0.3333
+- Episode_Termination/ee_body_pos: 18.5000
+- Metrics/motion/sampling_entropy: 0.3630
+- Iteration time: 1.26s
+- Time elapsed: 1:41:17
+
+## iteration 1000
+- Mean reward: 9.41
+- Mean episode length: 96.29
+- Metrics/motion/error_anchor_ang_vel: 1.0167
+- Metrics/motion/error_body_rot: 0.1747
+- Episode_Termination/anchor_ori: 0.0000
+- Metrics/motion/sampling_top1_prob: 0.7686
+- Metrics/motion/error_anchor_pos: 0.0156
+- Metrics/motion/error_body_ang_vel: 4.1073
+- Metrics/motion/error_body_lin_vel: 0.5306
+- Episode_Termination/time_out: 16.9583
+- Episode_Termination/anchor_pos: 0.0000
+- Metrics/motion/error_anchor_lin_vel: 0.1291
+- Metrics/motion/error_anchor_rot: 0.0628
+- Metrics/motion/error_joint_pos: 0.6924
+- Metrics/motion/error_body_pos: 0.0236
+- Metrics/motion/error_joint_vel: 14.2618
+- Metrics/motion/sampling_top1_bin: 0.3333
+- Episode_Termination/ee_body_pos: 17.5417
+- Metrics/motion/sampling_entropy: 0.2877
+- Iteration time: 1.23s
+- Time elapsed: 1:51:37
+
+## iteration 1499
+- Mean reward: 11.70
+- Mean episode length: 117.82
+- Metrics/motion/error_anchor_ang_vel: 0.9540
+- Metrics/motion/error_body_rot: 0.1751
+- Episode_Termination/anchor_ori: 0.0000
+- Metrics/motion/sampling_top1_prob: 0.7703
+- Metrics/motion/error_anchor_pos: 0.0182
+- Metrics/motion/error_body_ang_vel: 3.9938
+- Metrics/motion/error_body_lin_vel: 0.5168
+- Episode_Termination/time_out: 18.2083
+- Episode_Termination/anchor_pos: 0.0000
+- Metrics/motion/error_anchor_lin_vel: 0.1215
+- Metrics/motion/error_anchor_rot: 0.0635
+- Metrics/motion/error_joint_pos: 0.6789
+- Metrics/motion/error_body_pos: 0.0238
+- Metrics/motion/error_joint_vel: 13.7638
+- Metrics/motion/sampling_top1_bin: 0.3333
+- Episode_Termination/ee_body_pos: 19.0417
+- Metrics/motion/sampling_entropy: 0.2827
+- Iteration time: 1.24s
+- Time elapsed: 2:01:57
