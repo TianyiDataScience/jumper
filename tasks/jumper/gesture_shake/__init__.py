@@ -15,7 +15,7 @@ flat) and every second or so both swung to the same side, the torso leaning afte
 them; the whole body shuddering at 4-6 Hz; and a final pose with both arms raised.
 
 So the crab dances with both claws up from the first beat to the last, on its four
-back legs. It drops into a wide, crouched stance (90 mm; HOME stands at 107),
+back legs. It drops into a wide, crouched stance (87 mm; HOME stands at 107),
 settles back over the four legs, raises both claws over a second, and steps
 sideways one leg at a time -- the leading middle leg, the trailing one, the leading
 rear, the trailing rear -- each lifted 30 mm in a 0.22 s swing, the body carried a

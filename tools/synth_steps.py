@@ -880,7 +880,9 @@ SHAKE_CRAWL = {
     # and the middle legs' triangles leave the centre of mass no room 18 mm in. At 97 mm
     # (v9) the trailing middle foot, 25 mm in under the body while the rear pair steps,
     # could not fold that far back once the centre of mass went 18 mm in: lower, it can.
-    "crouch_z": 0.090,
+    # At 87 mm the body averages 20% below HOME through the dance and dips to 30% (the
+    # dancer's horse stance drops 20-25%); at 85 the rear legs miss their swing by 5 mm.
+    "crouch_z": 0.087,
     "wider": 0.01,
     "rear_wider": 0.04,
     "stance_s": 0.6,
