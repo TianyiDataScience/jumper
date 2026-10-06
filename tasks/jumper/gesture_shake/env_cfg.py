@@ -7,27 +7,37 @@ the rule is applied to this clip's measurements and the result is quoted -- read
 
 ## This clip, measured
 
-At the 50 Hz control rate (18.9 s): per-joint position std 0.309 rad at the median
-and 0.867 at the most active (a claw's wrist), RMS amplitude 0.447 rad; joint
-velocity RMS 2.24 rad/s, per-joint std 2.18 at the median and 3.67 at the most
-active, peaking at 16.3 rad/s (LM_J2, a middle leg lifting 30 mm in a 0.22 s
+At the 50 Hz control rate (26.0 s): per-joint position std 0.330 rad at the median
+and 0.869 at the most active (a claw's wrist), RMS amplitude 0.453 rad; joint
+velocity RMS 1.95 rad/s, per-joint std 2.03 at the median and 3.09 at the most
+active, peaking at 14.8 rad/s (LR_J1, a rear leg lifting 30 mm in a 0.22 s
 swing); the base between 75 and 107 mm; no tilt. Official dances this machinery
 trains run at 1.5-2.8 rad/s RMS.
+
+**It is on the dancer's beat.** His "da da da" in the reference video is 105 bpm
+(eighth notes; measured from the video's audio on the RTX 4070 PC, 2026-10-06), and
+the crab is played in time with it. v11's clip changed shape every 0.48 s, 125 bpm,
+a beat ahead of him in six. This one is built on 105 (`bpm` in the steps file):
+every claw shape is reached on a beat, every foot -- the steps into the stance and
+back up included -- comes down on one, and the first row, the key press, is one;
+all within 8.6 ms of the grid, half a 50 Hz row. The npz carries the grid as `bpm`
+and `beat_times_audio`. Otherwise it is v11's dance, slower: a beat a step against
+0.5 s, a shape a beat against 0.48 s.
 
 **What the feet must supply**, from the clip's inverse dynamics (contacts off, the
 support feet's forces solved for, pushing only): everything, outside a row or two
 at a touchdown -- the moment they cannot supply is 0.000 N*m at the 95th
-percentile, as for the tripod clip that trained (v7). The trot before this one
+percentile, as for the tripod clip that trained (v7), and 0.048 N*m at most. The trot before this one
 (v8) stood on two feet for 0.22 s of every 0.28 and asked 0.095 N*m that no foot
 could give, in 14% of its rows; its policy, trained on an RTX 4070 to 3000
 iterations (2026-10-06), kept the middle feet on the floor -- 17 mm lifts against
 30 -- and crossed 9 cm of the 18. Here one leg is in the air at a time and the
 centre of mass is inside the other three's triangle for the whole swing, at least
-17.8 mm in, the body swaying fore and aft to put it there; the moment the feet
-cannot supply is over 0.05 N*m in 2% of the rows, all at touchdowns. The support
-legs hold 1.31-1.54 N*m at the 95th percentile (J1). The claws' angular momentum
-asks 261 mN*m of roll, 214 of pitch and 258 of yaw (95th percentile, kinematic);
-the tripod clip asked 727 of roll and 619 of yaw.
+17.8 mm in, the body swaying fore and aft to put it there; v11's clip, at its
+faster beat, asked over 0.05 N*m of the feet in 2% of its rows, at touchdowns. The
+support legs hold 1.40-1.53 N*m at the 95th percentile (J1). The claws' angular
+momentum asks 178 mN*m of roll, 146 of pitch and 266 of yaw (95th percentile,
+kinematic; v11's 193, 207 and 254 measured the same way).
 
 **v9 held it 8 mm in, and its middle feet never left the floor.** Its policy (RTX
 4070, 4000 iterations, 2026-10-06) stepped the rear feet 31-35 mm and kept the
@@ -76,11 +86,11 @@ from ..common.dance.env import COMMAND, SUPPORT_FEET, dance_env_cfg
 #: This task's material, written by `tools/synth_steps.py`.
 MEDIA = Path(__file__).resolve().parent / "media"
 
-#: Episode length, seconds. Half the 18.9 s clip, jumper.dance_maze's rule for a
+#: Episode length, seconds. Half the 26.0 s clip, jumper.dance_maze's rule for a
 #: short clip: the command teleports the robot back onto the reference wherever an
 #: episode runs off the end, and at half the clip an episode sampled in its first
 #: half runs clean.
-EPISODE_S = 9.4
+EPISODE_S = 13.0
 
 
 def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvCfg:
@@ -112,12 +122,12 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         # the support feet, below the call.
         #
         # Joint position: jumper.dance's rule is a std at 0.44 of the clip's RMS
-        # amplitude. Here: 0.44 x 0.447 -> 0.20.
+        # amplitude. Here: 0.44 x 0.453 -> 0.20.
         joint_pos_std=0.20,
         joint_pos_weight=1.0,
-        # Joint velocity: two thirds of the clip's velocity RMS. Here: 2.24 -> 1.50.
+        # Joint velocity: two thirds of the clip's velocity RMS. Here: 1.95 -> 1.30.
         # Half the position weight, so when they disagree the pose wins.
-        joint_vel_std=1.50,
+        joint_vel_std=1.30,
         joint_vel_weight=0.5,
         # Smoothness: -0.1 is calibrated at this action scale (0.25) and the
         # second difference at half of it -- properties of the robot and the

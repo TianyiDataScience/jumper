@@ -165,7 +165,7 @@ class Contacts:
 class Builder:
     """The clip, segment by segment: the base, the feet on the floor, the joints."""
 
-    def __init__(self) -> None:
+    def __init__(self, exact: bool = False) -> None:
         from tasks.jumper.common.constants import HOME
 
         self.robot = gestures._Robot()
@@ -181,6 +181,15 @@ class Builder:
         self.feet = {leg: self.home[:3] + feet[k] for k, leg in enumerate(LEGS)}
         self.rows_q: list[np.ndarray] = []
         self.rows_b: list[np.ndarray] = []
+        # The time the segments so far asked for. `exact`: each segment ends on the row
+        # nearest that time, instead of lasting its own length rounded to rows -- which
+        # on a beat of 28.57 rows (105 bpm) gains 8.6 ms a beat, a quarter of a second
+        # over the bear shake's 33. Off, the clips built before it come out unchanged.
+        self.exact = exact
+        # A segment's rows are the ends of its steps, so the first row of all is DT in;
+        # the npz gives row r the time r * DT. Exact, the clock starts a row on, which
+        # puts every row at the time the npz says -- 20 ms early on every beat if not.
+        self.clock = DT if exact else 0.0
         self.worst = 0.0
         self.missed: list[tuple[int, str, float, np.ndarray]] = []
         # The least the centre of mass is inside the support polygon, and its row.
@@ -259,7 +268,11 @@ class Builder:
     ) -> None:
         """`steps`: (leg, phase lifted, phase landed, world point landed on), and
         optionally how high it swings if not `LIFT`."""
-        n = max(1, round(seconds / DT))
+        if self.exact:
+            n = max(1, round((self.clock + seconds) / DT) - len(self.rows_q))
+        else:
+            n = max(1, round(seconds / DT))
+        self.clock += seconds
         plan = {}
         for leg, u0, u1, target, *lift in steps:
             r0, p0 = frame_of(base(u0))
@@ -695,13 +708,23 @@ SHAKE_TROT = {
 }
 
 
+#: The claws-up shakes' first and last seconds, standing at HOME; their way from the
+#: dance into the closing W; and the two tripod steps back up to HOME at the end.
+SETTLE_S = 0.3
+INTO_W_S = 0.5
+STAND_S = 0.5
+
+
 class _ClawsUp:
     """What the bear shakes with both claws up share: the stance, the claws' dance, the
     centre of mass held over the four legs, and the way in and out of it all."""
 
     def __init__(self, p: dict, seen: np.ndarray | None = None) -> None:
         self.p = p
-        self.m = Builder()
+        self.m = Builder(exact=bool(p.get("bpm")))
+        # How long after a shape's change begins the claws are in it: 0 has every
+        # change begin on the shape_s grid, on the beat it lands on it (`on_beat`).
+        self.lag = p.get("shape_lag_s", 0.0)
         self.claws = ("LF", "RF")
         self.rear = ("LR", "RR")
         self.poses: dict[str, dict] = {}
@@ -724,6 +747,7 @@ class _ClawsUp:
 
     def timeline(self, t: float) -> dict:
         p, order = self.p, self.p["order"]
+        t -= self.lag
         k = int(t // p["shape_s"])
         u = t / p["shape_s"] - k
         return lerp(self.poses[order[k % len(order)]], self.poses[order[(k + 1) % len(order)]],
@@ -731,7 +755,7 @@ class _ClawsUp:
 
     def side_at(self, t: float) -> int:
         order = self.p["order"]
-        name = order[(int(t // self.p["shape_s"]) + 1) % len(order)]
+        name = order[(int((t - self.lag) // self.p["shape_s"]) + 1) % len(order)]
         return 1 if "left" in name else -1 if "right" in name else 0
 
     def dance(self, t: float) -> dict:
@@ -868,7 +892,7 @@ class _ClawsUp:
         p, m, claws = self.p, self.m, self.claws
         shut = lambda u: JAWS_SHUT
         b = m.home.copy()
-        m.segment(0.3, lambda u: b, shut)
+        m.segment(p.get("settle_s", SETTLE_S), lambda u: b, shut)
         ready = b.copy()
         ready[2] = p["crouch_z"]
         m.segment(p["stance_s"], tween(b, ready), shut,
@@ -924,7 +948,7 @@ class _ClawsUp:
         settle[1] = b[1]
         settle[0] = self.centred(settle, w)
         start = self.dance(t)
-        m.segment(0.5, tween(b, settle), lambda u: lerp(start, w, smooth(u)), free=claws)
+        m.segment(INTO_W_S, tween(b, settle), lambda u: lerp(start, w, smooth(u)), free=claws)
         m.segment(p["w_hold_s"], lambda u: settle, lambda u: w, free=claws)
         final = settle.copy()
         for _ in range(2):
@@ -956,10 +980,10 @@ class _ClawsUp:
         stand = m.home.copy()
         stand[1] = settle[1]
         shut = lambda u: JAWS_SHUT
-        m.segment(0.5, tween(settle, stand), shut,
+        m.segment(p.get("stand_s", STAND_S), tween(settle, stand), shut,
                   [(leg, 0.0, 0.5, m.landing(stand, leg)) for leg in TRIPOD_A]
                   + [(leg, 0.5, 1.0, m.landing(stand, leg)) for leg in TRIPOD_B])
-        m.segment(0.3, lambda u: stand, shut)
+        m.segment(SETTLE_S, lambda u: stand, shut)
 
 
 def shake_trot(p: dict) -> Builder:
@@ -1130,7 +1154,48 @@ SHAKE_CRAWL = {
     "turn_s": 0.6,
     "square_s": 0.4,
     "w_hold_s": 0.7,
+    # On a beat, beats a minute; 0 leaves the lengths above in seconds. Set, the
+    # lengths are counted in beats instead (`on_beat`) and every one above but the
+    # swing's is replaced: a shape a beat, landed on it; every step ending on one,
+    # the two into the stance and the two back up to HOME included; the claws up
+    # this many beats after the first row (two steps, a beat leaning back, the rest
+    # raising them), the travel turning back over this many, the W reached this
+    # many after the last step and held this many; the shudder this many times a beat. 105 is the bear shake's own: the dancer's
+    # "da da da" in the reference video, measured on the RTX 4070 PC (eighth notes
+    # at 105 bpm). v11's shape every 0.48 s is 125 bpm: a beat ahead of it in six.
+    "bpm": 0.0,
+    "intro_beats": 5,
+    "turn_beats": 1,
+    "square_beats": 2,
+    "hold_beats": 1,
+    "trembles_per_beat": 3,
 }
+
+
+def on_beat(p: dict) -> dict:
+    """`p` with SHAKE_CRAWL's lengths in seconds worked out from its beat, so that
+    everything the eye counts lands on one: each claw shape is reached on a beat, each
+    foot comes down on one, and the first row -- the key press -- is one too. The
+    builder ends every segment on the row nearest its exact time (`Builder.exact`);
+    every event is within half a row (10 ms) of its beat and nothing drifts."""
+    beat = 60.0 / p["bpm"]
+    pause = beat - p["swing_s"]
+    if pause <= 0:
+        raise ValueError(f"a {p['swing_s']} s swing does not fit in a beat at {p['bpm']} bpm")
+    # The press is a beat: the first tripod lands on the next, the second on the one
+    # after, then a beat leaning back over the four legs and the claws up.
+    raise_s = (p["intro_beats"] - 3) * beat
+    square_s = p["square_beats"] * beat - INTO_W_S
+    if raise_s < 0.8 or square_s <= 0:
+        # Raised faster than ~1 s the claws pitch the body forward onto its face.
+        raise ValueError(f"at {p['bpm']} bpm the claws would go up in {raise_s:.2f} s or square "
+                         f"up in {square_s:.2f}: give intro_beats / square_beats more beats")
+    return {**p, "settle_s": 0.0, "stance_s": 2 * beat, "lean_s": beat, "raise_s": raise_s,
+            "shape_s": beat, "shape_lag_s": (1 - p["shape_share"]) * beat,
+            "shift_s": pause, "shift2_s": pause, "double_s": pause,
+            "turn_s": p["turn_beats"] * beat, "square_s": square_s,
+            "w_hold_s": p["hold_beats"] * beat, "stand_s": 2 * beat,
+            "tremble_hz": p["trembles_per_beat"] / beat}
 
 
 def shake_crawl(p: dict) -> Builder:
@@ -1147,8 +1212,15 @@ def shake_crawl(p: dict) -> Builder:
 
     Built twice: the claws' shapes are placed to clear the legs where the first build
     puts them (`_ClawsUp.clear`), every 12th row of the dance."""
+    if p["bpm"]:
+        p = on_beat(p)
     first, dance = _shake_crawl(p, None)
-    return _shake_crawl(p, np.array(first.rows_q[dance])[::12])[0]
+    m = _shake_crawl(p, np.array(first.rows_q[dance])[::12])[0]
+    if p["bpm"]:
+        # The beat from the first row (the press) to past the last.
+        m.bpm = p["bpm"]
+        m.beats = np.arange(0.0, len(m.rows_q) * DT, 60.0 / p["bpm"])
+    return m
 
 
 def _shake_crawl(p: dict, seen: np.ndarray | None) -> tuple[Builder, slice]:
@@ -1337,6 +1409,12 @@ def synth(path: Path) -> Path:
     out["source_sha256"] = np.array(hashlib.sha256(raw).hexdigest())
     out["description"] = np.array(spec.get("description", ""))
     # The move starts and ends standing at HOME; there is no lead to add.
+    if getattr(m, "bpm", 0.0):
+        # As the dance clips carry theirs (`motion.load_source`): a track at this tempo
+        # with a beat at its first instant, started with the clip, plays in time.
+        out["bpm"] = np.array(m.bpm)
+        out["audio_start_in_sim"] = np.array(0.0)
+        out["beat_times_audio"] = m.beats
     out["lead_in_s"] = np.array(0.0)
     out["lead_out_s"] = np.array(0.0)
     out["hold_s"] = np.array(0.0)

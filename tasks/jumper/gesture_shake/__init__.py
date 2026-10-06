@@ -16,15 +16,16 @@ them; the whole body shuddering at 4-6 Hz; and a final pose with both arms raise
 
 So the crab dances with both claws up from the first beat to the last, on its four
 back legs. It drops into a wide, crouched stance (87 mm; HOME stands at 107),
-settles back over the four legs, raises both claws over a second, and steps
+settles back over the four legs, raises both claws over two beats, and steps
 sideways one leg at a time -- the leading middle leg, the trailing one, the leading
 rear, the trailing rear -- each lifted 30 mm in a 0.22 s swing, the body carried a
 stride sideways before each round and swaying fore and aft so that its weight is
 always over the three feet still down: 175 mm to the left in four rounds, a beat on
-four feet as it turns, and back. The claws go through a new shape every half
-second -- up in a V, crossed in front, out flat, both swung to one side --
-shuddering against each other at 5 Hz while the body bobs and shudders with them;
-it ends with both claws up in a W, held 0.7 s.
+four feet as it turns, and back. The claws reach a new shape on every beat -- up
+in a V, crossed in front, out flat, both swung to one side -- shuddering against
+each other three times a beat while the body bobs and shudders with them; it ends
+with both claws up in a W, held a beat. The beat is the dancer's own, 105 bpm, and
+every step and every shape lands on it.
 
 Earlier clips showed that the momentum the claws carry decides what trains, and
 then that the feet must be able to hold what is asked of them. The first two
@@ -46,8 +47,10 @@ stayed down again: the clip held the centre of mass 8 mm inside each triangle, a
 training moved it by up to 8.7 mm without the policy knowing. The tenth held it 18
 mm in and the left middle foot still never lifted: the claws' shapes went 20-50 mm
 through the middle legs, which the simulator does not allow, and the policy held its
-claws against them and that leg down. Each shape now clears the legs. `synth_steps.py` and `env_cfg.py`
-have the measurements.
+claws against them and that leg down. Each shape now clears the legs, and the
+eleventh danced it on an RTX 4070 (2026-10-06) -- a new shape every 0.48 s, 125 bpm,
+against the dancer's 105; the user plays the crab in time with him, so the twelfth
+is the eleventh on his beat. `synth_steps.py` and `env_cfg.py` have the measurements.
 
 There is no music, and nothing to export a performance video with: export with
 `--no-video`.
