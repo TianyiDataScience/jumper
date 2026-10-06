@@ -1,0 +1,26 @@
+- body top is 49 mm above the base origin
+- dones=0  duration 18.9 s
+- body: net travel 6.3 cm, path length 139.4 cm, x range 12.0 cm, y (lateral) range 15.7 cm
+- body z: 72..107 mm, bounce ~3.1 Hz, bounce depth p95 9 mm
+- LM_foot_tip_link   lifts  0, max height   11 mm, foot moved 5.0 cm net
+- RM_foot_tip_link   lifts  3, max height   38 mm, foot moved 7.8 cm net
+- LR_foot_tip_link   lifts  4, max height   41 mm, foot moved 3.8 cm net
+- RR_foot_tip_link   lifts  6, max height   38 mm, foot moved 5.1 cm net
+- travel range mm: x 120, y 157; x -120..0, y -57..99
+- base height: start 83 mm, min 72 mm (drop 11 mm); peak |roll| 2.9 deg, peak |pitch| 8.7 deg
+- base z spectrum: dominant 4.98 Hz in 1-12 Hz; fast tremble (>~3 Hz) amplitude p95 2.4 mm
+- claw max world z: LF 242 mm, RF 252 mm
+- both claw tips above the top of the body: 65% of the dance (LF 70%, RF 68%)
+- mean joint-position error vs reference: 0.134 rad (p95 0.239)
+- lateral excursion t=2.68s: y +22 mm (z 78 mm, roll -1 deg) -> 0.5 s later y +15 mm
+- lateral excursion t=3.84s: y +2 mm (z 79 mm, roll +0 deg) -> 0.5 s later y +47 mm
+- lateral excursion t=4.26s: y +48 mm (z 83 mm, roll -1 deg) -> 0.5 s later y +37 mm
+- lateral excursion t=4.98s: y +31 mm (z 81 mm, roll -1 deg) -> 0.5 s later y +23 mm
+- lateral excursion t=5.44s: y +22 mm (z 83 mm, roll -0 deg) -> 0.5 s later y +71 mm
+- lateral excursion t=5.82s: y +76 mm (z 85 mm, roll -1 deg) -> 0.5 s later y +57 mm
+- lateral excursion t=6.88s: y +45 mm (z 81 mm, roll +0 deg) -> 0.5 s later y +99 mm
+- lateral excursion t=7.40s: y +99 mm (z 83 mm, roll -1 deg) -> 0.5 s later y +87 mm
+- lateral excursion t=8.48s: y +71 mm (z 81 mm, roll -0 deg) -> 0.5 s later y +73 mm
+- lateral excursion t=11.08s: y +45 mm (z 83 mm, roll +0 deg) -> 0.5 s later y +50 mm
+- lateral excursion t=12.64s: y +4 mm (z 84 mm, roll -1 deg) -> 0.5 s later y +12 mm
+- lateral excursion t=14.26s: y -32 mm (z 79 mm, roll +0 deg) -> 0.5 s later y -28 mm
