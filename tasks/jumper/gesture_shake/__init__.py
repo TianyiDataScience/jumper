@@ -24,7 +24,7 @@ always over the three feet still down: 175 mm to the left in four rounds, a beat
 four feet as it turns, and back. The claws reach a new shape on every beat -- up
 in a V, crossed in front, out flat, both swung to one side -- shuddering against
 each other three times a beat while the body bobs and shudders with them; it ends
-with both claws up in a W, held a beat. The beat is the dancer's own, 105 bpm, and
+with both claws up in a W, held a beat. The beat is the dancer's own, 104.1 bpm, and
 every step and every shape lands on it.
 
 Earlier clips showed that the momentum the claws carry decides what trains, and
@@ -49,7 +49,7 @@ mm in and the left middle foot still never lifted: the claws' shapes went 20-50 
 through the middle legs, which the simulator does not allow, and the policy held its
 claws against them and that leg down. Each shape now clears the legs, and the
 eleventh danced it on an RTX 4070 (2026-10-06) -- a new shape every 0.48 s, 125 bpm,
-against the dancer's 105; the user plays the crab in time with him, so the twelfth
+against the dancer's 104; the user plays the crab in time with him, so the twelfth
 is the eleventh on his beat. `synth_steps.py` and `env_cfg.py` have the measurements.
 
 There is no music, and nothing to export a performance video with: export with

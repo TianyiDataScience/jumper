@@ -1160,9 +1160,10 @@ SHAKE_CRAWL = {
     # the two into the stance and the two back up to HOME included; the claws up
     # this many beats after the first row (two steps, a beat leaning back, the rest
     # raising them), the travel turning back over this many, the W reached this
-    # many after the last step and held this many; the shudder this many times a beat. 105 is the bear shake's own: the dancer's
-    # "da da da" in the reference video, measured on the RTX 4070 PC (eighth notes
-    # at 105 bpm). v11's shape every 0.48 s is 125 bpm: a beat ahead of it in six.
+    # many after the last step and held this many; the shudder this many times a
+    # beat. The bear shake's is the dancer's own "da da da" in the reference video,
+    # eighth notes at 104.1 bpm (measured on the RTX 4070 PC: a line through 29 onsets,
+    # +/-0.2, 30 ms rms). v11's shape every 0.48 s is 125 bpm, a beat ahead in six.
     "bpm": 0.0,
     "intro_beats": 5,
     "turn_beats": 1,
