@@ -7,11 +7,11 @@ the rule is applied to this clip's measurements and the result is quoted -- read
 
 ## This clip, measured
 
-At the 50 Hz control rate (18.9 s): per-joint position std 0.270 rad at the median
-and 0.587 at the most active, RMS amplitude 0.333 rad; joint velocity RMS 2.05
-rad/s, per-joint std 1.81 at the median and 3.26 at the most active, peaking at
-15.5 rad/s (LM_J2, a middle leg lifting 30 mm in a 0.22 s swing); the base
-between 85 and 107 mm; no tilt. Official dances this machinery trains run at
+At the 50 Hz control rate (18.9 s): per-joint position std 0.281 rad at the median
+and 0.577 at the most active, RMS amplitude 0.333 rad; joint velocity RMS 2.03
+rad/s, per-joint std 1.82 at the median and 3.25 at the most active, peaking at
+15.0 rad/s (RR_J1, a rear leg lifting 30 mm in a 0.22 s swing); the base
+between 78 and 107 mm; no tilt. Official dances this machinery trains run at
 1.5-2.8 rad/s RMS.
 
 **What the feet must supply**, from the clip's inverse dynamics (contacts off, the
@@ -22,10 +22,19 @@ percentile, as for the tripod clip that trained (v7). The trot before this one
 could give, in 14% of its rows; its policy, trained on an RTX 4070 to 3000
 iterations (2026-10-06), kept the middle feet on the floor -- 17 mm lifts against
 30 -- and crossed 9 cm of the 18. Here one leg is in the air at a time and the
-centre of mass is inside the other three's triangle, at least 8 mm in, the body
-swaying fore and aft to put it there. The support legs hold 1.35-1.41 N*m at the
-95th percentile (J1). The claws' angular momentum asks 286 mN*m of roll and 297 of
-yaw (95th percentile, kinematic); the tripod clip asked 727 and 619.
+centre of mass is inside the other three's triangle for the whole swing, at least
+17.8 mm in, the body swaying fore and aft to put it there; the moment the feet
+cannot supply is over 0.05 N*m in 1% of the rows, all at touchdowns. The support
+legs hold 1.30-1.43 N*m at the 95th percentile (J1). The claws' angular momentum
+asks 284 mN*m of roll and 301 of yaw (95th percentile, kinematic); the tripod clip
+asked 727 and 619.
+
+**v9 held it 8 mm in, and its middle feet never left the floor.** Its policy (RTX
+4070, 4000 iterations, 2026-10-06) stepped the rear feet 31-35 mm and kept the
+middle feet down -- 0 and 1 lift-offs of 25 mm, travel 13.4 cm -- with its centre
+of mass 10-15 mm forward of the clip's, -7 to +5 mm from the edge of every middle
+leg's triangle: robust to the base's randomised centre of mass (below), which on
+the skeleton's ranges moved the robot's by as much as the clip's margin.
 
 **Played open loop it still falls**: on this task's actuators with PD to the
 reference and no policy, the body sags 15 mm onto the soft servos (kp 10) while
@@ -143,4 +152,17 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         weight=0.5,
         params={"command_name": COMMAND, "std": 0.03, "body_names": SUPPORT_FEET},
     )
+    # The base's centre-of-mass offset, randomised once per environment and invisible
+    # to the policy. The tracking skeleton's +/-25/50/50 mm are the G1 torso's; on this
+    # 0.886 kg base of a 2.54 kg robot they move the whole robot's centre of mass
+    # +/-8.7 mm fore and aft and +/-17 mm sideways -- as much as the crawl's whole
+    # margin inside its three feet. The v9 policy (RTX 4070, 4000 iterations,
+    # 2026-10-06) learned the one stance that survives all of it: centre of mass
+    # 10-15 mm forward of the clip's, -7 to +5 mm from the edge of every middle leg's
+    # triangle, so the middle feet never left the floor (0 and 1 lift-offs of 25 mm
+    # against the rear legs' 3-4). +/-10 mm on the base is +/-3.5 mm on the robot.
+    # Still not measured on this robot -- nor were the skeleton's.
+    cfg.events["base_com"].params["ranges"] = {
+        0: (-0.01, 0.01), 1: (-0.01, 0.01), 2: (-0.01, 0.01),
+    }
     return cfg

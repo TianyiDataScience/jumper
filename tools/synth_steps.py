@@ -47,7 +47,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import itertools
 import json
 import sys
 from collections.abc import Callable
@@ -57,7 +56,8 @@ from pathlib import Path
 import import_wbc_dances as dances
 import import_wbc_gestures as gestures
 import numpy as np
-from scipy.optimize import least_squares
+from scipy import sparse
+from scipy.optimize import least_squares, lsq_linear
 from scipy.spatial import ConvexHull
 from scipy.spatial.transform import Rotation
 
@@ -876,8 +876,11 @@ SHAKE_CRAWL = {
     # of the robot, held in front), which sweeps every foot forward in the body's
     # frame, and swept that far forward a rear leg cannot lift 30 mm unless its foot
     # is at least 20 mm further out than HOME -- nor a middle leg reach a stride out
-    # past 45 mm. Wider still, the rear legs only sag further on the servos (kp 10).
-    "crouch_z": 0.097,
+    # past 45 mm. Wider still, the rear legs only sag further on the servos (kp 10),
+    # and the middle legs' triangles leave the centre of mass no room 18 mm in. At 97 mm
+    # (v9) the trailing middle foot, 25 mm in under the body while the rear pair steps,
+    # could not fold that far back once the centre of mass went 18 mm in: lower, it can.
+    "crouch_z": 0.090,
     "wider": 0.01,
     "rear_wider": 0.04,
     "stance_s": 0.6,
@@ -888,13 +891,18 @@ SHAKE_CRAWL = {
     "lean_s": 0.5,
     "raise_s": 1.0,
     # The crawl: one leg in the air at a time, the other three holding the centre of
-    # mass inside their triangle -- at least this far inside it, metres. The two
-    # middle legs lift with the centre of mass behind the diagonal between the other
-    # middle foot and the opposite rear foot, the two rear legs with it in front of
-    # the other diagonal; it swings this far back and forth from the diagonals'
-    # crossing, on a half cosine from the middle of one pair's lifts to the next.
-    "margin": 0.008,
-    "depth": 0.02,
+    # mass inside their triangle -- at least this far inside it, metres, for the whole
+    # swing. The two middle legs lift with the centre of mass behind the diagonal
+    # between the other middle foot and the opposite rear foot, the two rear legs with
+    # it in front of the other diagonal. 8 mm (v9) was less than the training's own
+    # randomised offset of the centre of mass (+/-8.7 mm fore and aft): its policy kept
+    # the centre of mass forward and the middle feet down. 18 mm is as far in as the
+    # middle legs reach: at 20 the triangle has no room left where the claws hold it.
+    "margin": 0.018,
+    # How hard the centre of mass is drawn back to the diagonals' crossing between
+    # swings, against the acceleration it costs, 1/s^2: enough that it does not wander
+    # to a corner of the four feet, little enough that the swings set the path.
+    "centre_pull": 2.0,
     # Seconds on four feet before the middle pair steps (the body carried sideways a
     # stride, to midway between where the feet stood and where they will land, so
     # that every swing is centred under it) and before the rear pair.
@@ -945,13 +953,15 @@ def shake_crawl(p: dict) -> Builder:
     four = ("LM", "RM", "LR", "RR")
     ready, lean = rig.intro()
 
-    def xy(legs: tuple[str, ...]) -> np.ndarray:
-        return np.array([m.feet[leg][:2] for leg in legs])
+    def xy(legs: tuple[str, ...], feet: dict | None = None) -> np.ndarray:
+        return np.array([(m.feet if feet is None else feet)[leg][:2] for leg in legs])
 
-    def interval(support: tuple[str, ...], y: float) -> tuple[float, float] | None:
-        """The x range, at y, of the triangle of `support` feet inset by the margin."""
+    def interval(support: tuple[str, ...], y: float,
+                 feet: dict | None = None) -> tuple[float, float] | None:
+        """The x range, at y, of the triangle of `support` feet (where they stand now,
+        or in `feet`) inset by the margin."""
         lo, hi = -np.inf, np.inf
-        for a, e, c in ConvexHull(xy(support)).equations:  # a x + e y + c <= -margin
+        for a, e, c in ConvexHull(xy(support, feet)).equations:  # a x + e y + c <= -margin
             r = -p["margin"] - c - e * y
             if abs(a) < 1e-9:
                 if r < 0:
@@ -964,11 +974,10 @@ def shake_crawl(p: dict) -> Builder:
 
     # The plan first -- every phase's length, the base's y, the step in it and the
     # three feet holding the body up -- so that the centre of mass's fore-and-aft swing
-    # can be laid over all of it. Its keys sit in the middle of each pair's two lifts;
-    # moved only in the shifts between them, the 40 mm it travels has the feet throw
-    # the body at 0.4 g, and the zero-moment point leaves the four feet.
+    # can be laid over all of it. Moved only in the four-footed shifts between the
+    # pairs, the 40 mm it travels has the feet throw the body at 0.4 g and the
+    # zero-moment point leaves the four feet; it moves through the swings as well.
     plan = []  # (seconds, y from, y to, steps, support, dip, bobs)
-    keys = [(0.0, 0)]  # (time, -1 back / +1 forward / 0 at the crossing)
     stance, by, t = 0.0, lean[1], 0.0
     for i, d in enumerate(p["cycles"]):
         lead, trail = ("L", "R") if d > 0 else ("R", "L")
@@ -980,7 +989,7 @@ def shake_crawl(p: dict) -> Builder:
             seconds = p["shift2_s"] if j else p["shift_s"]
             plan.append((seconds, by, mid, [], None, 0.0, 1))
             t += seconds
-            by, t_in = mid, t
+            by = mid
             for k, leg in enumerate(pair):
                 lift = p["rear_lift"] if leg in rear else p["lift"]
                 plan.append((p["swing_s"], by, by, [(leg, 0.0, 1.0, rig.place(square, leg), lift)],
@@ -990,21 +999,58 @@ def shake_crawl(p: dict) -> Builder:
                     plan.append((p["double_s"], by, by, [],
                                  tuple(f for f in four if f != pair[1]), 0.0, 1))
                     t += p["double_s"]
-            keys.append(((t_in + t) / 2, 1 if j else -1))
         if i + 1 < len(p["cycles"]) and p["cycles"][i + 1] != d:
             plan.append((p["turn_s"], by, by, [], None, p["bob"], 2))
             t += p["turn_s"]
-    plan.append((p["square_s"], by, by, [], None, 0.0, 1))
+    # Squared up over the feet where they finally stand: the body is still midway
+    # between them and where the last steps came from, and on the claws' way down
+    # (`outro`) that leaves one middle leg folded 25 mm in under it.
+    plan.append((p["square_s"], by, ready[1] + stance, [], None, 0.0, 1))
     t_end = t + p["square_s"]
-    keys.append((t_end, 0))
     crossing = xy(four).mean(0)[0]
 
+    # The centre of mass's fore-and-aft path, solved for rather than keyed: the
+    # smoothest path (least acceleration, at the rows the builder will sample) that
+    # holds it `margin` inside each triangle for the whole of every swing, starts and
+    # ends where the four feet's diagonals cross, and is drawn gently toward that
+    # crossing elsewhere. Keyed half cosines through the middle of each pair's lifts
+    # (v9) left the triangle at the start and end of every swing unless clipped, and
+    # a clip is a jump: past an 8 mm margin, the clip's jumps asked the feet for a
+    # moment they cannot give in 8% of the rows (0.9 N*m at the 95th percentile).
+    rows_t, lo, hi = [], [], []
+    t = 0.0
+    feet = {leg: m.feet[leg].copy() for leg in four}
+    for seconds, y0, y1, steps, support, _dip, _bobs in plan:
+        n = max(1, round(seconds / DT))
+        for k in range(1, n + 1):
+            u = k / n
+            x = lean.copy()
+            x[1] = y0 + (y1 - y0) * smooth(u)
+            off = rig.com_offset(x, t + u * seconds)
+            room = interval(support or four, x[1] + off[1], feet)
+            if room is None:
+                raise ValueError(f"t {t + u * seconds:.2f}: the centre of mass has no room "
+                                 f"inside {support or four}")
+            rows_t.append(t + u * seconds)
+            lo.append(room[0])
+            hi.append(room[1])
+        for leg, _u0, _u1, target, _lift in steps:
+            feet[leg] = target
+        t += seconds
+    rows_t = np.array(rows_t)
+    n = len(rows_t) + 4  # two rows pinned to the crossing at each end
+    pin = 1e-6
+    lb = np.concatenate([[crossing - pin] * 2, lo, [crossing - pin] * 2])
+    ub = np.concatenate([[crossing + pin] * 2, hi, [crossing + pin] * 2])
+    accel = sparse.diags([1.0, -2.0, 1.0], [0, 1, 2], shape=(n - 2, n)) / DT**2
+    pull = sparse.identity(n) * p["centre_pull"]
+    a = sparse.vstack([accel, pull]).tocsr()
+    rhs = np.concatenate([np.zeros(n - 2), np.full(n, crossing * p["centre_pull"])])
+    path = lsq_linear(a, rhs, bounds=(lb, ub), method="trf", lsmr_tol="auto",
+                      max_iter=5000).x[2:-2]
+
     def com_x(tt: float) -> float:
-        for (ta, sa), (tb, sb) in itertools.pairwise(keys):
-            if ta <= tt <= tb:
-                w = (1 - np.cos(np.pi * (tt - ta) / (tb - ta))) / 2
-                return crossing + p["depth"] * (sa + (sb - sa) * w)
-        return crossing
+        return float(np.interp(tt, rows_t, path, left=crossing, right=crossing))
 
     def fade(tt: float) -> float:
         return smooth(tt / 0.5) * smooth((t_end - tt) / 0.5)

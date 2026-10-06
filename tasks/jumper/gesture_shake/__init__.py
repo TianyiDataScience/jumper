@@ -15,7 +15,7 @@ flat) and every second or so both swung to the same side, the torso leaning afte
 them; the whole body shuddering at 4-6 Hz; and a final pose with both arms raised.
 
 So the crab dances with both claws up from the first beat to the last, on its four
-back legs. It drops into a wide, crouched stance (97 mm; HOME stands at 107),
+back legs. It drops into a wide, crouched stance (90 mm; HOME stands at 107),
 settles back over the four legs, raises both claws over a second, and steps
 sideways one leg at a time -- the leading middle leg, the trailing one, the leading
 rear, the trailing rear -- each lifted 30 mm in a 0.22 s swing, the body carried a
@@ -40,8 +40,11 @@ the floor most of the time, where the dancer's arms never are. A walk on the fou
 legs one at a time, a claw coming down for each middle leg, threw the claws too
 hard to stand. The eighth trotted in diagonal pairs with both claws up and trained
 without a fall, but a pair's two feet cannot hold the body up on their own and the
-policy never lifted its middle feet more than 17 mm, travelling 9 cm. `synth_steps.py`
-and `env_cfg.py` have the measurements.
+policy never lifted its middle feet more than 17 mm, travelling 9 cm. The ninth
+crawled one leg at a time and its rear feet stepped 31-35 mm, but its middle feet
+stayed down again: the clip held the centre of mass 8 mm inside each triangle, and
+training moved it by up to 8.7 mm without the policy knowing. `synth_steps.py` and
+`env_cfg.py` have the measurements.
 
 There is no music, and nothing to export a performance video with: export with
 `--no-video`.
