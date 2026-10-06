@@ -548,7 +548,297 @@ def shake(p: dict) -> Builder:
     return m
 
 
-MOVES = {"flash": (flash, FLASH), "shake": (shake, SHAKE)}
+SHAKE_TROT = {
+    # The stance: crouched this low, every foot this much wider than HOME, stepped
+    # into over this many seconds.
+    "crouch_z": 0.097,
+    "wider": 0.025,
+    "stance_s": 0.6,
+    # The four legs trot: a diagonal pair in the air at a time, the other pair's
+    # line under the centre of mass. The pairs' lines cross midway between the
+    # middle and rear feet; the rear feet stand this much further forward than
+    # their places, so that the body need not go as far back to put the crossing
+    # under the centre of mass.
+    "rear_in": 0.04,
+    # The claws stand this much closer in, so that they still reach the floor with
+    # the body back over the four legs.
+    "claw_in": 0.04,
+    "lean_s": 0.5,
+    # Seconds raising both claws, slowly: the claws are 27% of the robot, and swung
+    # up in 0.35 s their reaction pitches the body onto its face.
+    "raise_s": 1.0,
+    # Seconds moving the body over the first diagonal pair's line. Every row after
+    # that puts the centre of mass over the line of the pair on the floor, the
+    # claws' share of it included, and moves it to the next pair's line while all
+    # four feet are down.
+    "shift_s": 0.4,
+    # A pair's beat: in the air, then all four down.
+    "swing_s": 0.22,
+    "double_s": 0.06,
+    # Cycles (+1 travelling to the robot's left, -1 back), each both pairs, and the
+    # metres each one carries the body; feet land this share of a stride ahead.
+    "cycles": [1, 1, 1, 1, -1, -1, -1, -1],
+    "stride": 0.045,
+    "lead": 0.3,
+    "lift": 0.030,
+    "rear_lift": 0.027,
+    # Knees down on every beat; the shudder over everything. No roll in it: the
+    # body is on a line for most of the time, and a roll would tip it over the line.
+    "bob": 0.006,
+    "tremble_hz": 5.0,
+    "tremble_z": 0.006,
+    "tremble_roll": 0.0,
+    # The claws shudder in opposite directions, so their reactions cancel in pitch.
+    "claw_tremble": 0.06,
+    # The claws keep their own time: a new shape every this many seconds, reached
+    # over this share of it and held for the rest. The dancer changes every
+    # 0.25-0.5 s; the claws are 27% of the robot, so they take the slow end.
+    "shape_s": 0.48,
+    "shape_share": 0.7,
+    # The claws' shapes, as tips in the base frame, metres: (left, right), or the
+    # left alone and mirrored. The dancer's arms hold one shape for a quarter of a
+    # second: forward-down crossing the hips, out low, up in a V, crossed in front
+    # of the chest, flung out flat, ...; and every second or so both swing to the
+    # same side, one across, one flung out, with the torso leaning into it.
+    "shapes": {
+        "out_low": [0.12, 0.24, -0.02],
+        "V": [0.07, 0.15, 0.12],
+        "chest": [0.19, 0.06, 0.05],
+        "T": [0.10, 0.26, 0.0],
+        "up_left": [[0.07, 0.15, 0.13], [0.09, -0.20, 0.07]],
+        "swing_left": [[0.08, 0.27, 0.02], [0.19, 0.03, 0.05]],
+        "wide_left": [[0.10, 0.24, 0.07], [0.11, -0.24, 0.0]],
+        "up_right": [[0.09, 0.20, 0.07], [0.07, -0.15, 0.13]],
+        "swing_right": [[0.19, -0.03, 0.05], [0.08, -0.27, 0.02]],
+        "wide_right": [[0.11, 0.24, 0.0], [0.10, -0.24, 0.07]],
+        "W": [0.06, 0.14, 0.13],
+    },
+    # The shapes in order, repeating; the swings turn the body their way.
+    "order": ["V", "chest", "T", "up_left", "swing_left", "wide_left", "V", "out_low",
+              "V", "chest", "T", "up_right", "swing_right", "wide_right", "V", "out_low"],
+    # The body turns this far towards a swing, radians. The dancer leans into it
+    # too, 30 degrees; the crab cannot: standing on a line between two feet, a lean
+    # tips it over the line.
+    "lunge_yaw": 0.03,
+    # Seconds on all four feet where the travel turns back.
+    "turn_s": 0.6,
+    "w_hold_s": 0.7,
+}
+
+
+def shake_trot(p: dict) -> Builder:
+    """The bear shake with both claws up from the first beat to the last, the four
+    back legs trotting sideways in diagonal pairs."""
+    m = Builder()
+    shut = lambda u: JAWS_SHUT
+    claws = ("LF", "RF")
+    rear = ("LR", "RR")
+
+    def place(b: np.ndarray, leg: str) -> np.ndarray:
+        w = m.landing(b, leg, p["wider"])
+        shift = p["rear_in"] if leg in rear else -p["claw_in"] if leg in claws else 0.0
+        rot, _ = frame_of(b)
+        w = w + rot @ np.array([shift, 0.0, 0.0])
+        w[2] = m.floor
+        return w
+
+    b = m.home.copy()
+    m.segment(0.3, lambda u: b, shut)
+    ready = b.copy()
+    ready[2] = p["crouch_z"]
+    m.segment(p["stance_s"], tween(b, ready), shut,
+              [(leg, 0.0, 0.5, place(ready, leg)) for leg in TRIPOD_A]
+              + [(leg, 0.5, 1.0, place(ready, leg)) for leg in TRIPOD_B])
+    order = p["order"]
+    poses: dict[str, dict] = {}
+    q = m.q.copy()
+    for name in [*order, "W"]:
+        if name in poses:
+            continue
+        tips = p["shapes"][name]
+        left, right = (tips if isinstance(tips[0], list)
+                       else (tips, [tips[0], -tips[1], tips[2]]))
+        for leg, tip in (("LF", left), ("RF", right)):
+            q, miss = m._ik(q, leg, np.array(tip, float))
+            if miss > 0.003:
+                raise ValueError(f"{name}: {leg} cannot reach {tip}: misses by {miss * 1000:.1f} mm")
+        poses[name] = {**{m.names[i]: float(q[i]) for c in claws for i in m.idx[c]}, **JAWS_SHUT}
+
+    def timeline(t: float) -> dict:
+        k = int(t // p["shape_s"])
+        u = t / p["shape_s"] - k
+        return lerp(poses[order[k % len(order)]], poses[order[(k + 1) % len(order)]],
+                    smooth(u / p["shape_share"]))
+
+    def side_at(t: float) -> int:
+        name = order[(int(t // p["shape_s"]) + 1) % len(order)]
+        return 1 if "left" in name else -1 if "right" in name else 0
+
+    def dance(t: float) -> dict:
+        j = timeline(t)
+        wobble = p["claw_tremble"] * np.sin(2 * np.pi * p["tremble_hz"] * t)
+        for c, sign in (("LF", 1), ("RF", -1)):
+            k = m.names.index(f"{c}_J1_joint")
+            j[f"{c}_J1_joint"] = float(np.clip(j[f"{c}_J1_joint"] + sign * wobble, m.lo[k], m.hi[k]))
+        return {**JAWS_SHUT, **j}
+
+    def shudder(x: np.ndarray, t: float, dip: float) -> np.ndarray:
+        ph = 2 * np.pi * p["tremble_hz"] * t
+        x[2] = p["crouch_z"] - dip + p["tremble_z"] * np.sin(ph)
+        x[3] += p["tremble_roll"] * np.sin(ph + 1.0)
+        return x
+
+    def com_offset(b: np.ndarray, t: float, arms: dict | None = None,
+                   legs: np.ndarray | None = None) -> np.ndarray:
+        """The centre of mass's horizontal offset from the base, the claws as the
+        dance has them at t (or as `arms` has them) and the legs as they last stood
+        (or as `legs` has them)."""
+        q = (m.q if legs is None else legs).copy()
+        for name, value in (dance(t) if arms is None else arms).items():
+            q[m.names.index(name)] = value
+        rot, _ = frame_of(b)
+        return (rot @ m.robot.feet_and_com(q[None])[1][0])[:2]
+
+    def standing(b: np.ndarray) -> np.ndarray:
+        """The joints with every foot where it stands, under base pose b."""
+        rot, origin = frame_of(b)
+        q = m.q.copy()
+        for leg in LEGS:
+            q, _ = m._ik(q, leg, rot.T @ (m.feet[leg] - origin))
+        return q
+
+    def centred(b: np.ndarray, arms: dict) -> float:
+        """The base x that puts the centre of mass midway between the middle and
+        the rear feet, where the two pairs' lines cross: on four soft legs (kp 10)
+        a body loaded onto one pair sags on that side and pitches over it."""
+        mid = np.mean([m.feet[leg][0] for leg in ("LM", "RM", "LR", "RR")])
+        x = b.copy()
+        for _ in range(3):
+            x[0] = mid - com_offset(x, 0.0, arms, standing(x))[0]
+        return float(x[0])
+
+    def on_line(b: np.ndarray, t: float, pair: tuple[np.ndarray, np.ndarray]) -> float:
+        """The base x that puts the centre of mass over the line between two feet,
+        the base's y as it is."""
+        a, e = pair
+        c = com_offset(b, t)
+        s = (b[1] + c[1] - a[1]) / (e[1] - a[1])
+        return float(a[0] + s * (e[0] - a[0]) - c[0])
+
+    # Back over the four legs with the claws still on the floor, to where the centre
+    # of mass will be centred once they are up; then up, slowly, the body following
+    # the centre of mass as the claws carry theirs back.
+    first = dance(0.0)
+    lean = ready.copy()
+    lean[0] = centred(ready, {})
+    m.segment(p["lean_s"], tween(ready, lean), shut)
+    down = {**m.claw_joints("LF"), **m.claw_joints("RF")}
+
+    def rising(u: float) -> dict:
+        return {**JAWS_SHUT, **lerp(down, first, smooth(u))}
+
+    def raised(u: float) -> np.ndarray:
+        x = lean.copy()
+        x[0] = centred(x, rising(u))
+        return x
+
+    m.segment(p["raise_s"], raised, rising, free=claws)
+    lean = raised(1.0)
+    seconds = p["swing_s"] + p["double_s"]
+    land = p["swing_s"] / seconds
+    plan = []
+    for d in p["cycles"]:
+        plan += [(("LM", "RR"), d), (("RM", "LR"), d)]
+    pairs = {("LM", "RR"): ("RM", "LR"), ("RM", "LR"): ("LM", "RR")}
+    # Onto the first pair's line, the claws dancing from here on.
+    first_line = tuple(m.feet[leg].copy() for leg in pairs[plan[0][0]])
+    start = lean.copy()
+    goal = lean.copy()
+    goal[0] = on_line(goal, p["shift_s"], first_line)
+    t = 0.0
+    m.segment(p["shift_s"], lambda u: shudder(tween(start, goal)(u).copy(), u * p["shift_s"], 0.0),
+              lambda u: dance(u * p["shift_s"]), free=claws)
+    t += p["shift_s"]
+    b = goal.copy()
+    for i, (pair, d) in enumerate(plan):
+        nb = b.copy()
+        nb[1] += d * p["stride"] / 2
+        nb[5] = side_at(t + seconds) * p["lunge_yaw"]
+        line = tween(b, nb)
+        square = ready.copy()
+        square[1] = nb[1] + d * p["lead"] * p["stride"]
+        targets = {leg: place(square, leg) for leg in pair}
+        now = tuple(m.feet[leg].copy() for leg in pairs[pair])
+        then = tuple(targets[leg] for leg in pair)
+
+        def base(u: float, line=line, t0=t, now=now, then=then) -> np.ndarray:
+            x = line(u).copy()
+            tt = t0 + u * seconds
+            x[0] = on_line(x, tt, now)
+            if u > land:
+                x[0] += (on_line(x, tt, then) - x[0]) * smooth((u - land) / (1 - land))
+            return shudder(x, tt, p["bob"] * np.sin(np.pi * u) ** 2)
+
+        steps = [(leg, 0.0, land, targets[leg], p["rear_lift"] if leg in rear else p["lift"])
+                 for leg in pair]
+        m.segment(seconds, base, lambda u, t0=t: dance(t0 + u * seconds), steps, free=claws)
+        b = base(1.0)
+        b[2], b[3] = p["crouch_z"], 0.0
+        t += seconds
+        if i + 1 < len(plan) and plan[i + 1][1] != d:
+            # Turning back: all four feet down while the knees bob twice and the
+            # claws dance on, the body kept over the next pair's line.
+            def base(u: float, b=b, t0=t, then=then) -> np.ndarray:
+                x = b.copy()
+                tt = t0 + u * p["turn_s"]
+                x[0] = on_line(x, tt, then)
+                return shudder(x, tt, p["bob"] * np.sin(2 * np.pi * u) ** 2)
+
+            m.segment(p["turn_s"], base, lambda u, t0=t: dance(t0 + u * p["turn_s"]), free=claws)
+            b = base(1.0)
+            b[2], b[3] = p["crouch_z"], 0.0
+            t += p["turn_s"]
+    # Square up over the four legs, the claws into the W, held, and down -- as
+    # slowly as they went up, the body following the centre of mass forward.
+    w = {**poses["W"], "LF_J4_joint": -0.8, "RF_J4_joint": 0.8}
+    settle = lean.copy()
+    settle[1] = b[1]
+    settle[0] = centred(settle, w)
+    start = dance(t)
+    m.segment(0.5, tween(b, settle), lambda u: lerp(start, w, smooth(u)), free=claws)
+    m.segment(p["w_hold_s"], lambda u: settle, lambda u: w, free=claws)
+    final = settle.copy()
+    for _ in range(2):
+        spots = {c: place(final, c) for c in claws}
+        floor = {}
+        for c in claws:
+            floor.update({**m.claw_at(final, c, spots[c]), f"{c}_J4_joint": 0.0})
+        final[0] = centred(final, floor)
+
+    def lowering(u: float) -> dict:
+        return lerp(w, floor, smooth(u))
+
+    def lowered(u: float) -> np.ndarray:
+        x = settle.copy()
+        x[0] = centred(x, lowering(u))
+        return x
+
+    m.segment(p["raise_s"], lowered, lowering, free=claws)
+    for c in claws:
+        m.feet[c] = spots[c]
+    settle = lowered(1.0)
+    stand = m.home.copy()
+    stand[1] = settle[1]
+    m.segment(0.5, tween(settle, stand), shut,
+              [(leg, 0.0, 0.5, m.landing(stand, leg)) for leg in TRIPOD_A]
+              + [(leg, 0.5, 1.0, m.landing(stand, leg)) for leg in TRIPOD_B])
+    m.segment(0.3, lambda u: stand, shut)
+    return m
+
+
+#: `shake_tripod` is the bear shake before both claws went up (gesture_shake v7, which
+#: trained): kept to compare against while the four-legged one is new.
+MOVES = {"flash": (flash, FLASH), "shake": (shake_trot, SHAKE_TROT), "shake_tripod": (shake, SHAKE)}
 
 
 def synth(path: Path) -> Path:
