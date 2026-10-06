@@ -41,8 +41,11 @@ lift-offs, at most 11 mm, against the right one's 3 of 38-42 mm; RTX 4070, 4000
 iterations, 2026-10-06, and again with the feet's weight at 1.0). The claws' shapes,
 solved by their tips alone, held each palm upright from a wrist out at the middle
 leg's knee: 20-50 mm through the middle legs in every shape but one, which the
-simulator does not allow -- its policy rested the claws on the middle legs, 0 mm
-from them all through the dance. Each shape now turns its claw forward at the
+simulator does not allow, so no policy can follow both claw and leg. v10b's (played
+without randomisation) held its left claw within 5 mm of the left middle leg for 38%
+of the dance, its claw yaws 0.39-0.40 rad off the clip's, and kept that leg down: the
+clip's own leg, against the claw where the policy held it, would have gone up to 12 mm
+into it in 31% of the rows. Each shape now turns its claw forward at the
 shoulder to clear the legs by 9-11 mm in every way the crawl puts them, the tips 2-5
 cm further forward (`tools/synth_steps.py`), and nowhere in the clip do two limbs
 come nearer each other than 0.9 mm.

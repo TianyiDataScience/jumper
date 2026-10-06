@@ -45,8 +45,8 @@ crawled one leg at a time and its rear feet stepped 31-35 mm, but its middle fee
 stayed down again: the clip held the centre of mass 8 mm inside each triangle, and
 training moved it by up to 8.7 mm without the policy knowing. The tenth held it 18
 mm in and the left middle foot still never lifted: the claws' shapes went 20-50 mm
-through the middle legs, which the simulator does not allow, and the policy rested
-its claws on them. Each shape now clears the legs. `synth_steps.py` and `env_cfg.py`
+through the middle legs, which the simulator does not allow, and the policy held its
+claws against them and that leg down. Each shape now clears the legs. `synth_steps.py` and `env_cfg.py`
 have the measurements.
 
 There is no music, and nothing to export a performance video with: export with

@@ -787,9 +787,10 @@ class _ClawsUp:
         Solved by its tip alone, a claw raised beside the body holds its palm upright
         from a wrist out at the middle leg's knee, and on the crawl's crouched, leaned-
         back stance that is through the leg: 20-50 mm into it in every shape but one,
-        and the policy trained on it (v10) rested its claws on its middle legs, which
-        never once lifted. Turned forward at the shoulder, the same tip is reached with
-        the forearm raised and the palm leaning out, in front of the leg."""
+        and the policies trained on it (v10, v10b) held their claws against the middle
+        legs and never once lifted the left one. Turned forward at the shoulder, the
+        same tip is reached with the forearm raised and the palm leaning out, in front
+        of the leg."""
         p, m = self.p, self.m
         if not hasattr(self, "contacts"):
             self.contacts = Contacts(m.robot)
