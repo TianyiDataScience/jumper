@@ -16,29 +16,32 @@ them; the whole body shuddering at 4-6 Hz; and a final pose with both arms raise
 
 So the crab dances with both claws up from the first beat to the last, on its four
 back legs. It drops into a wide, crouched stance (97 mm; HOME stands at 107),
-settles back over the four legs, raises both claws over a second, and trots
-sideways in diagonal pairs -- left middle with right rear, then right middle with
-left rear -- a pair in the air for 0.22 s of every 0.28, each foot lifted 27-30 mm:
-180 mm to the left, a beat on four feet as it turns, and back. On a pair's line the
-crab is balanced the way a trotting dog is, the body moved fore and aft every beat
-to keep the centre of mass over the line. The claws go through a new shape every
-half second -- up in a V, crossed in front, out flat, both swung to one side --
+settles back over the four legs, raises both claws over a second, and steps
+sideways one leg at a time -- the leading middle leg, the trailing one, the leading
+rear, the trailing rear -- each lifted 30 mm in a 0.22 s swing, the body carried a
+stride sideways before each round and swaying fore and aft so that its weight is
+always over the three feet still down: 175 mm to the left in four rounds, a beat on
+four feet as it turns, and back. The claws go through a new shape every half
+second -- up in a V, crossed in front, out flat, both swung to one side --
 shuddering against each other at 5 Hz while the body bobs and shudders with them;
 it ends with both claws up in a W, held 0.7 s.
 
-Earlier clips showed that the momentum the claws carry decides what trains. The
-first two whipped extended claws the same way as the body's yaw, 1518 and 688
-mN*m of yaw torque at the 95th percentile for the feet to react, and neither
-trained on an RTX 4070 (2026-10-05). The fourth swung guarded claws against the
-twist, 29 mN*m, and trained (joint error 0.083) -- and was rejected by the user as
-a shiver in place, not the dance: it had been designed from the move's name, before
-the reference was at hand. The sixth and seventh, built from the reference,
-stepped in tripods with the claws taking turns as the arms; the seventh trained
-(joint error 0.200) and crossed 198 mm in steps lifted 34-39 mm, but seen from the
-front its claws were on the floor most of the time, where the dancer's arms never
-are. A walk on the four legs one at a time, a claw coming down for each middle
-leg, threw the claws too hard to stand. `synth_steps.py` and `env_cfg.py` have the
-measurements.
+Earlier clips showed that the momentum the claws carry decides what trains, and
+then that the feet must be able to hold what is asked of them. The first two
+whipped extended claws the same way as the body's yaw, 1518 and 688 mN*m of yaw
+torque at the 95th percentile for the feet to react, and neither trained on an RTX
+4070 (2026-10-05). The fourth swung guarded claws against the twist, 29 mN*m, and
+trained (joint error 0.083) -- and was rejected by the user as a shiver in place,
+not the dance: it had been designed from the move's name, before the reference was
+at hand. The sixth and seventh, built from the reference, stepped in tripods with
+the claws taking turns as the arms; the seventh trained (joint error 0.200) and
+crossed 198 mm in steps lifted 34-39 mm, but seen from the front its claws were on
+the floor most of the time, where the dancer's arms never are. A walk on the four
+legs one at a time, a claw coming down for each middle leg, threw the claws too
+hard to stand. The eighth trotted in diagonal pairs with both claws up and trained
+without a fall, but a pair's two feet cannot hold the body up on their own and the
+policy never lifted its middle feet more than 17 mm, travelling 9 cm. `synth_steps.py`
+and `env_cfg.py` have the measurements.
 
 There is no music, and nothing to export a performance video with: export with
 `--no-video`.
@@ -52,7 +55,7 @@ from ..common.assets import JUMPER_ASSETS
 register(
     id="jumper.gesture_shake",
     assets=JUMPER_ASSETS,
-    description="jumper hexapod imitating the bear shake (both claws up and dancing while the four back legs trot sideways and back in diagonal pairs, crouched, the body shuddering); the clip is committed in "
+    description="jumper hexapod imitating the bear shake (both claws up and dancing while the four back legs step sideways and back one at a time, crouched, the body swaying and shuddering); the clip is committed in "
                 "tasks/jumper/gesture_shake/media/",
     tags=("imitation", "jumper", "gesture", "flat"),
 )
