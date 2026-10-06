@@ -392,7 +392,7 @@ def compile_extension(cargo: str, verbose: bool) -> Path:
     quiet = [] if verbose else ["--quiet"]
     run([cargo, "build", "--release", "--no-default-features", "--features", "py", *quiet],
         cwd=CRATE)
-    for name in ("libmjrl_fsm.so", "libmjrl_fsm.dylib"):
+    for name in ("libmjrl_fsm.so", "libmjrl_fsm.dylib", "mjrl_fsm.dll"):
         built = CRATE / "target/release" / name
         if built.is_file():
             return built
