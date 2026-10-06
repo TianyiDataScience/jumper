@@ -43,8 +43,11 @@ without a fall, but a pair's two feet cannot hold the body up on their own and t
 policy never lifted its middle feet more than 17 mm, travelling 9 cm. The ninth
 crawled one leg at a time and its rear feet stepped 31-35 mm, but its middle feet
 stayed down again: the clip held the centre of mass 8 mm inside each triangle, and
-training moved it by up to 8.7 mm without the policy knowing. `synth_steps.py` and
-`env_cfg.py` have the measurements.
+training moved it by up to 8.7 mm without the policy knowing. The tenth held it 18
+mm in and the left middle foot still never lifted: the claws' shapes went 20-50 mm
+through the middle legs, which the simulator does not allow, and the policy rested
+its claws on them. Each shape now clears the legs. `synth_steps.py` and `env_cfg.py`
+have the measurements.
 
 There is no music, and nothing to export a performance video with: export with
 `--no-video`.

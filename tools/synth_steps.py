@@ -46,6 +46,7 @@ this tool's question: a playback on the task's actuators and the training run ar
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import sys
@@ -108,6 +109,59 @@ def support_margin(feet: np.ndarray, com: np.ndarray) -> float:
     return float(-(hull.equations[:, :2] @ com + hull.equations[:, 2]).max())
 
 
+class Contacts:
+    """How near the robot's limbs come to one another, from the simulator's own
+    collision pass run with a margin: it reports every pair of geoms within `reach` of
+    touching as well as those that touch, with their signed distance, and it leaves out
+    the pairs the simulator leaves out (a link and the body it hangs from).
+    `mj_geomDistance` would be the direct call; on these meshes it returns 0 for some
+    pairs 15-45 mm apart, and not the same pairs from one run to the next."""
+
+    def __init__(self, robot: gestures._Robot, reach: float = 0.03) -> None:
+        self.mj, self.reach, self.q_adr = robot.mujoco, reach, robot.q_adr
+        self.model = copy.deepcopy(robot.model)
+        self.data = self.mj.MjData(self.model)
+        m = self.model
+        self.limb = []
+        for g in range(m.ngeom):
+            body = int(m.geom_bodyid[g])
+            name = m.body(body).name[:2]
+            self.limb.append(name if name in LEGS else "world" if body == 0 else "base")
+        self.solid = [bool(m.geom_contype[g] or m.geom_conaffinity[g]) and self.limb[g] != "world"
+                      for g in range(m.ngeom)]
+        self.watch(None)
+
+    def watch(self, limb: str | None) -> None:
+        """Measure `limb` against every other limb; None, every limb against every other."""
+        m = self.model
+        for g in range(m.ngeom):
+            m.geom_contype[g] = m.geom_conaffinity[g] = 0
+            m.geom_margin[g] = 0.0
+            if not self.solid[g]:
+                continue
+            if limb is None:
+                m.geom_contype[g] = m.geom_conaffinity[g] = 1
+                m.geom_margin[g] = self.reach
+            elif self.limb[g] == limb:
+                m.geom_contype[g] = 2
+                m.geom_margin[g] = self.reach
+            else:
+                m.geom_conaffinity[g] = 2
+
+    def near(self, q: np.ndarray) -> list[tuple[float, str, str, int, int]]:
+        """(signed distance, limb, limb, geom, geom) of every pair within reach, from
+        different limbs, with the joints at q."""
+        mj, d = self.mj, self.data
+        d.qpos[:] = 0.0
+        d.qpos[2] = 1.0  # well clear of the floor
+        d.qpos[3] = 1.0
+        d.qpos[self.q_adr] = q
+        mj.mj_kinematics(self.model, d)
+        mj.mj_collision(self.model, d)
+        return [(float(c.dist), self.limb[c.geom1], self.limb[c.geom2], int(c.geom1), int(c.geom2))
+                for c in d.contact[:d.ncon] if self.limb[c.geom1] != self.limb[c.geom2]]
+
+
 class Builder:
     """The clip, segment by segment: the base, the feet on the floor, the joints."""
 
@@ -138,6 +192,18 @@ class Builder:
     def _feet(self, q: np.ndarray) -> np.ndarray:
         return self.robot.feet_and_com(q[None])[0][0]
 
+    def closest(self) -> tuple[float, int, str, str]:
+        """How near two limbs come over the clip: (signed distance, row, geom, geom),
+        negative where one goes through the other -- which the simulator does not let
+        it, so a policy cannot follow it there."""
+        contacts = Contacts(self.robot)
+        best = (contacts.reach, -1, "", "")
+        for row, q in enumerate(self.rows_q):
+            for dist, _a, _b, g1, g2 in contacts.near(q):
+                if dist < best[0]:
+                    best = (dist, row, contacts.model.geom(g1).name, contacts.model.geom(g2).name)
+        return best
+
     def _ik(self, q: np.ndarray, leg: str, target: np.ndarray) -> tuple[np.ndarray, float]:
         """q with `leg`'s joints moved to put its foot at `target` (base frame)."""
         idx, k = self.idx[leg], LEGS.index(leg)
@@ -163,10 +229,11 @@ class Builder:
         w[2] = self.floor
         return w
 
-    def claw_at(self, b: np.ndarray, leg: str, w: np.ndarray) -> dict:
-        """The claw joints that put its foot at world point w under base pose b."""
+    def claw_at(self, b: np.ndarray, leg: str, w: np.ndarray, q: np.ndarray | None = None) -> dict:
+        """The claw joints that put its foot at world point w under base pose b, solved
+        from the joints as they are now (or from q)."""
         rot, origin = frame_of(b)
-        q, _ = self._ik(self.q, leg, rot.T @ (w - origin))
+        q, _ = self._ik(self.q if q is None else q, leg, rot.T @ (w - origin))
         return {self.names[i]: float(q[i]) for i in self.idx[leg]}
 
     def claw_joints(self, leg: str) -> dict:
@@ -632,12 +699,17 @@ class _ClawsUp:
     """What the bear shakes with both claws up share: the stance, the claws' dance, the
     centre of mass held over the four legs, and the way in and out of it all."""
 
-    def __init__(self, p: dict) -> None:
+    def __init__(self, p: dict, seen: np.ndarray | None = None) -> None:
         self.p = p
         self.m = Builder()
         self.claws = ("LF", "RF")
         self.rear = ("LR", "RR")
         self.poses: dict[str, dict] = {}
+        # The joints the dance puts the legs in (rows of a first build), which every
+        # shape's claws are placed to clear; None places them by their tips alone.
+        self.seen = seen
+        # Each shape's claws' least clearance from the other limbs over `seen`.
+        self.clearance: dict[str, float] = {}
 
     def place(self, b: np.ndarray, leg: str) -> np.ndarray:
         """Where `leg` stands in the stance under base pose b: out to its side, the rear
@@ -703,6 +775,90 @@ class _ClawsUp:
             x[0] = mid - self.com_offset(x, 0.0, arms, self.standing(x))[0]
         return float(x[0])
 
+    def clear(self, q: np.ndarray, leg: str, tip: np.ndarray,
+              near: np.ndarray) -> tuple[np.ndarray, float]:
+        """q with `leg`'s claw still on `tip`, turned about the one joint it has more than
+        a tip needs (its yaw) so that it clears the legs by `clearance` -- and does not
+        touch the body or the other claw -- with the legs as each row of `seen` has them:
+        of the ways that do, the nearest to the joints `near` (the first shape's, which
+        the dance keeps coming back to), so that every shape is a short move from it;
+        if none does, the clearest. Returns (q, how near it comes to a leg).
+
+        Solved by its tip alone, a claw raised beside the body holds its palm upright
+        from a wrist out at the middle leg's knee, and on the crawl's crouched, leaned-
+        back stance that is through the leg: 20-50 mm into it in every shape but one,
+        and the policy trained on it (v10) rested its claws on its middle legs, which
+        never once lifted. Turned forward at the shoulder, the same tip is reached with
+        the forearm raised and the palm leaning out, in front of the leg."""
+        p, m = self.p, self.m
+        if not hasattr(self, "contacts"):
+            self.contacts = Contacts(m.robot)
+            self.order = list(range(len(self.seen)))
+        contacts = self.contacts
+        contacts.watch(leg)
+        idx, k = m.idx[leg], LEGS.index(leg)
+        lo, hi = m.lo[idx], m.hi[idx]
+        claws = [i for c in self.claws for i in m.idx[c]]
+        rows = self.seen.copy()
+        rows[:, claws] = q[claws]
+
+        def slack(x: np.ndarray, stop: float) -> float:
+            """The least of (distance to a leg - clearance) and (distance to the body or
+            the other claw), down to `stop`. A row that ends the search goes first next
+            time: the few leg configurations that come nearest settle most candidates."""
+            least = np.inf
+            for n, r in enumerate(self.order):
+                rows[r, idx] = x
+                for dist, a, b, *_ in contacts.near(rows[r]):
+                    other = b if a == leg else a
+                    least = min(least, dist - (p["clearance"] if other in LEGS else 0.0))
+                if least < stop:
+                    self.order.insert(0, self.order.pop(n))
+                    break
+            return least
+
+        def reach(j0: float, j1: float) -> np.ndarray | None:
+            def residual(x: np.ndarray) -> np.ndarray:
+                qq = q.copy()
+                qq[idx[0]] = j0
+                qq[idx[1:]] = x
+                return m._feet(qq)[k] - tip
+
+            start = np.clip([j1, 0.0, 0.0], lo[1:], hi[1:])
+            sol = least_squares(residual, start, bounds=(lo[1:], hi[1:]))
+            return np.concatenate([[j0], sol.x]) if np.abs(sol.fun).max() < 0.002 else None
+
+        ways = [q[idx].copy()]
+        for j0 in np.linspace(lo[0], hi[0], 36):
+            for j1 in np.linspace(lo[1], hi[1], 7)[1:-1]:
+                x = reach(j0, j1)
+                if x is not None and min(np.abs(w - x).max() for w in ways) > 0.05:
+                    ways.append(x)
+        ways.sort(key=lambda w: np.linalg.norm(w - near))
+        tried = []
+        for x in ways:
+            s = slack(x, 0.0)
+            if s >= 0.0:
+                best = x
+                break
+            tried.append((s, x))
+        else:
+            # None clears: of the ways, the clearest, each followed only as long as it
+            # can still beat the best so far.
+            best, top = None, -np.inf
+            for s, x in sorted(tried, key=lambda e: -e[0]):
+                if s <= top:
+                    break
+                s = slack(x, top)
+                if s > top:
+                    best, top = x, s
+        q = q.copy()
+        q[idx] = best
+        rows[:, idx] = best
+        near = min((d for r in rows for d, a, b, *_ in contacts.near(r)
+                    if (b if a == leg else a) in LEGS), default=contacts.reach)
+        return q, near
+
     def intro(self) -> tuple[np.ndarray, np.ndarray]:
         """Down into the stance, back over the four legs with the claws still on the
         floor, then both claws up, slowly, the body following the centre of mass as
@@ -724,10 +880,19 @@ class _ClawsUp:
             tips = p["shapes"][name]
             left, right = (tips if isinstance(tips[0], list)
                            else (tips, [tips[0], -tips[1], tips[2]]))
+            least = np.inf
             for leg, tip in (("LF", left), ("RF", right)):
                 q, miss = m._ik(q, leg, np.array(tip, float))
                 if miss > 0.003:
                     raise ValueError(f"{name}: {leg} cannot reach {tip}: misses by {miss * 1000:.1f} mm")
+                if self.seen is not None:
+                    hub = self.poses.get(p["order"][0])
+                    near = (q[m.idx[leg]] if hub is None
+                            else np.array([hub[m.names[i]] for i in m.idx[leg]]))
+                    q, clear = self.clear(q, leg, np.array(tip, float), near)
+                    least = min(least, clear)
+            if self.seen is not None:
+                self.clearance[name] = least
             self.poses[name] = {**{m.names[i]: float(q[i]) for c in claws for i in m.idx[c]},
                                 **JAWS_SHUT}
         first = self.dance(0.0)
@@ -735,6 +900,7 @@ class _ClawsUp:
         lean[0] = self.centred(ready, {})
         m.segment(p["lean_s"], tween(ready, lean), shut)
         down = {**m.claw_joints("LF"), **m.claw_joints("RF")}
+        self.down = m.q.copy()
 
         def rising(u: float) -> dict:
             return {**JAWS_SHUT, **lerp(down, first, smooth(u))}
@@ -761,10 +927,17 @@ class _ClawsUp:
         m.segment(p["w_hold_s"], lambda u: settle, lambda u: w, free=claws)
         final = settle.copy()
         for _ in range(2):
-            spots = {c: self.place(final, c) for c in claws}
-            floor = {}
+            # Down where they stood as they went up, in the body's frame, and solved from
+            # the joints they had there: the way up in reverse, which clears the legs.
+            # Onto the stance's places instead, 7 cm further back under a body still
+            # leaned back, they swept through the middle legs (by 20 mm); and solved from
+            # the W, turned forward, the nearest way down crossed the palms.
+            rot, origin = frame_of(final)
+            spots, floor = {}, {}
             for c in claws:
-                floor.update({**m.claw_at(final, c, spots[c]), f"{c}_J4_joint": 0.0})
+                spots[c] = rot @ self.m._feet(self.down)[LEGS.index(c)] + origin
+                spots[c][2] = m.floor
+                floor.update({**m.claw_at(final, c, spots[c], self.down), f"{c}_J4_joint": 0.0})
             final[0] = self.centred(final, floor)
 
         def lowering(u: float) -> dict:
@@ -925,12 +1098,32 @@ SHAKE_CRAWL = {
     "bob": 0.006,
     "tremble_hz": 5.0,
     "tremble_z": 0.006,
-    # The claws as SHAKE_TROT's: the same shapes, order and timing.
+    # The claws keep SHAKE_TROT's order and timing. Their shapes are its shapes moved
+    # 2-5 cm forward, and the ones flung out brought 3-5 cm in: on the crawl's stance
+    # the middle legs reach forward to the end of their yaw (the body leans back over
+    # them), and a claw flung 24-27 cm out beside the body cannot miss them however it
+    # is turned (`_ClawsUp.clear`). Face on, the depth does not show.
     "claw_tremble": 0.06,
     "shape_s": 0.48,
     "shape_share": 0.7,
-    "shapes": SHAKE_TROT["shapes"],
+    "shapes": {
+        "out_low": [0.15, 0.21, -0.02],
+        "V": [0.09, 0.15, 0.12],
+        "chest": [0.19, 0.06, 0.05],
+        "T": [0.13, 0.23, 0.0],
+        "up_left": [[0.09, 0.15, 0.13], [0.11, -0.20, 0.07]],
+        "swing_left": [[0.14, 0.21, 0.02], [0.19, 0.03, 0.05]],
+        "wide_left": [[0.13, 0.21, 0.07], [0.13, -0.23, 0.0]],
+        "up_right": [[0.11, 0.20, 0.07], [0.09, -0.15, 0.13]],
+        "swing_right": [[0.19, -0.03, 0.05], [0.14, -0.21, 0.02]],
+        "wide_right": [[0.13, 0.23, 0.0], [0.13, -0.21, 0.07]],
+        "W": [0.08, 0.14, 0.13],
+    },
     "order": SHAKE_TROT["order"],
+    # How far every claw shape keeps from the legs, metres, in every way the crawl
+    # puts them. 14 mm is as far as any shape gets: the middle leg's hip, swung
+    # forward, comes that near the claw's upper arm whatever the claw does.
+    "clearance": 0.010,
     # Seconds on four feet where the travel turns back, squaring up at the end, and
     # holding the W.
     "turn_s": 0.6,
@@ -949,11 +1142,22 @@ def shake_crawl(p: dict) -> Builder:
     in 14% of its rows, 0.095 N*m at the 95th percentile, and the policy trained on it
     kept its middle feet on the floor (17 mm lifts, 9 cm of travel). This one needs
     nothing the feet cannot give outside a touchdown's row or two -- the tripod
-    clip that trained (`shake_tripod`) is the same."""
-    rig = _ClawsUp(p)
+    clip that trained (`shake_tripod`) is the same.
+
+    Built twice: the claws' shapes are placed to clear the legs where the first build
+    puts them (`_ClawsUp.clear`), every 12th row of the dance."""
+    first, dance = _shake_crawl(p, None)
+    return _shake_crawl(p, np.array(first.rows_q[dance])[::12])[0]
+
+
+def _shake_crawl(p: dict, seen: np.ndarray | None) -> tuple[Builder, slice]:
+    """`shake_crawl` with its claws' shapes placed to clear the legs as `seen` has them
+    (or by their tips alone); returns the clip and the rows of its dance."""
+    rig = _ClawsUp(p, seen)
     m, claws, rear = rig.m, rig.claws, rig.rear
     four = ("LM", "RM", "LR", "RR")
     ready, lean = rig.intro()
+    start = len(m.rows_q)
 
     def xy(legs: tuple[str, ...], feet: dict | None = None) -> np.ndarray:
         return np.array([(m.feet if feet is None else feet)[leg][:2] for leg in legs])
@@ -1084,8 +1288,9 @@ def shake_crawl(p: dict) -> Builder:
                   steps, free=claws)
         b = base(1.0)
         t += seconds
+    dance = slice(start, len(m.rows_q))
     rig.outro(b, t, lean)
-    return m
+    return m, dance
 
 
 #: `shake_tripod` is the bear shake before both claws went up (gesture_shake v7, which
@@ -1152,6 +1357,9 @@ def synth(path: Path) -> Path:
           f"floor (row {m.margin[1]}, {m.margin[1] * DT:.2f} s)")
     print(f"  fastest joint {m.names[fastest]} at {speed[fastest]:.2f} rad/s; a claw in the air "
           f"would have gone {max(0.0, -m.lowest) * 1000:.1f} mm through the floor")
+    near, row, a, b = m.closest()
+    print(f"  two limbs come within {near * 1000:.1f} mm of each other at the closest "
+          f"(row {row}, {row * DT:.2f} s: {a} and {b}; negative is one through the other)")
     return dest
 
 

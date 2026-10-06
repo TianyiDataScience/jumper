@@ -7,12 +7,12 @@ the rule is applied to this clip's measurements and the result is quoted -- read
 
 ## This clip, measured
 
-At the 50 Hz control rate (18.9 s): per-joint position std 0.281 rad at the median
-and 0.577 at the most active, RMS amplitude 0.333 rad; joint velocity RMS 2.03
-rad/s, per-joint std 1.82 at the median and 3.25 at the most active, peaking at
-15.0 rad/s (RR_J1, a rear leg lifting 30 mm in a 0.22 s swing); the base
-between 78 and 107 mm; no tilt. Official dances this machinery trains run at
-1.5-2.8 rad/s RMS.
+At the 50 Hz control rate (18.9 s): per-joint position std 0.309 rad at the median
+and 0.867 at the most active (a claw's wrist), RMS amplitude 0.447 rad; joint
+velocity RMS 2.24 rad/s, per-joint std 2.18 at the median and 3.67 at the most
+active, peaking at 16.3 rad/s (LM_J2, a middle leg lifting 30 mm in a 0.22 s
+swing); the base between 75 and 107 mm; no tilt. Official dances this machinery
+trains run at 1.5-2.8 rad/s RMS.
 
 **What the feet must supply**, from the clip's inverse dynamics (contacts off, the
 support feet's forces solved for, pushing only): everything, outside a row or two
@@ -24,10 +24,10 @@ iterations (2026-10-06), kept the middle feet on the floor -- 17 mm lifts agains
 30 -- and crossed 9 cm of the 18. Here one leg is in the air at a time and the
 centre of mass is inside the other three's triangle for the whole swing, at least
 17.8 mm in, the body swaying fore and aft to put it there; the moment the feet
-cannot supply is over 0.05 N*m in 1% of the rows, all at touchdowns. The support
-legs hold 1.30-1.43 N*m at the 95th percentile (J1). The claws' angular momentum
-asks 284 mN*m of roll and 301 of yaw (95th percentile, kinematic); the tripod clip
-asked 727 and 619.
+cannot supply is over 0.05 N*m in 2% of the rows, all at touchdowns. The support
+legs hold 1.31-1.54 N*m at the 95th percentile (J1). The claws' angular momentum
+asks 261 mN*m of roll, 214 of pitch and 258 of yaw (95th percentile, kinematic);
+the tripod clip asked 727 of roll and 619 of yaw.
 
 **v9 held it 8 mm in, and its middle feet never left the floor.** Its policy (RTX
 4070, 4000 iterations, 2026-10-06) stepped the rear feet 31-35 mm and kept the
@@ -35,6 +35,17 @@ middle feet down -- 0 and 1 lift-offs of 25 mm, travel 13.4 cm -- with its centr
 of mass 10-15 mm forward of the clip's, -7 to +5 mm from the edge of every middle
 leg's triangle: robust to the base's randomised centre of mass (below), which on
 the skeleton's ranges moved the robot's by as much as the clip's margin.
+
+**v10 held it 18 mm in, and its left middle foot still never left the floor** (0
+lift-offs, at most 11 mm, against the right one's 3 of 38-42 mm; RTX 4070, 4000
+iterations, 2026-10-06, and again with the feet's weight at 1.0). The claws' shapes,
+solved by their tips alone, held each palm upright from a wrist out at the middle
+leg's knee: 20-50 mm through the middle legs in every shape but one, which the
+simulator does not allow -- its policy rested the claws on the middle legs, 0 mm
+from them all through the dance. Each shape now turns its claw forward at the
+shoulder to clear the legs by 9-11 mm in every way the crawl puts them, the tips 2-5
+cm further forward (`tools/synth_steps.py`), and nowhere in the clip do two limbs
+come nearer each other than 0.9 mm.
 
 **Played open loop it still falls**: on this task's actuators with PD to the
 reference and no policy, the body sags 15 mm onto the soft servos (kp 10) while
@@ -98,12 +109,12 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         # the support feet, below the call.
         #
         # Joint position: jumper.dance's rule is a std at 0.44 of the clip's RMS
-        # amplitude. Here: 0.44 x 0.333 -> 0.15.
-        joint_pos_std=0.15,
+        # amplitude. Here: 0.44 x 0.447 -> 0.20.
+        joint_pos_std=0.20,
         joint_pos_weight=1.0,
-        # Joint velocity: two thirds of the clip's velocity RMS. Here: 2.05 -> 1.35.
+        # Joint velocity: two thirds of the clip's velocity RMS. Here: 2.24 -> 1.50.
         # Half the position weight, so when they disagree the pose wins.
-        joint_vel_std=1.35,
+        joint_vel_std=1.50,
         joint_vel_weight=0.5,
         # Smoothness: -0.1 is calibrated at this action scale (0.25) and the
         # second difference at half of it -- properties of the robot and the
@@ -123,7 +134,7 @@ def env_cfg(asset: Path | None = None, play: bool = False) -> ManagerBasedRlEnvC
         self_collision_weight=-1.0,
         self_collision_force=1.0,
         # ── Terminations ──────────────────────────────────────────────────
-        # Root height: this clip moves the body through 85-107 mm, a 22 mm band,
+        # Root height: this clip moves the body through 75-107 mm, a 32 mm band,
         # so 40 mm exceeds all of it and cannot fire on a policy merely tracking
         # badly -- jumper.dance's rule, and its number.
         anchor_height_error=0.04,
